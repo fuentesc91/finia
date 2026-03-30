@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 import { signOut } from "firebase/auth";
 import { auth } from "~/lib/firebase.client";
 import { useAuth } from "~/context/auth";
-import { getAnthropicSettings } from "~/lib/firestore.client";
+import { ExpenseForm } from "~/components/ExpenseForm";
+import { ExpenseList } from "~/components/ExpenseList";
 
 export function meta() {
   return [{ title: "Finia" }];
@@ -12,18 +13,10 @@ export function meta() {
 export default function Home() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const [claudeConnected, setClaudeConnected] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (!loading && !user) navigate("/login");
   }, [user, loading, navigate]);
-
-  useEffect(() => {
-    if (!user) return;
-    getAnthropicSettings(user.uid)
-      .then((settings) => setClaudeConnected(settings !== null && settings.hasCredits))
-      .catch(() => setClaudeConnected(false)); // fail silently on home page
-  }, [user]);
 
   if (loading || !user) {
     return (
@@ -54,22 +47,12 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="px-6 py-8 max-w-lg mx-auto">
+      <main className="px-6 py-8 max-w-lg mx-auto space-y-6">
         <p className="text-gray-700 dark:text-gray-300">
           Hola, <span className="font-medium">{user.displayName ?? user.email}</span>
         </p>
-        <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Pronto podrás registrar tus gastos aquí.</p>
-
-        {claudeConnected === false && (
-          <Link
-            to="/settings"
-            className="mt-6 flex items-center gap-3 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950 px-4 py-3 text-sm text-amber-700 dark:text-amber-300 transition-colors hover:bg-amber-100 dark:hover:bg-amber-900"
-          >
-            <span>✦</span>
-            <span>Conecta Claude para categorizar tus gastos automáticamente.</span>
-            <span className="ml-auto text-amber-500 dark:text-amber-400">→</span>
-          </Link>
-        )}
+        <ExpenseForm uid={user.uid} />
+        <ExpenseList uid={user.uid} />
       </main>
     </div>
   );

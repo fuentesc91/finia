@@ -5,8 +5,15 @@ import {
   updateDoc,
   deleteField,
   serverTimestamp,
+  addDoc,
+  collection,
+  getDocs,
+  onSnapshot,
+  orderBy,
+  query,
 } from "firebase/firestore";
 import { db } from "~/lib/firebase.client";
+import { CATEGORIES, type Category, type Expense } from "~/types/expense";
 
 function normalizeFirestoreError(err: unknown): Error {
   if (err && typeof err === "object" && "code" in err) {
@@ -58,6 +65,66 @@ export async function deleteAnthropicKey(uid: string): Promise<void> {
     if (err && typeof err === "object" && "code" in err && (err as { code: string }).code === "not-found") {
       return; // key was already gone, no-op
     }
+    throw normalizeFirestoreError(err);
+  }
+}
+
+// ─── Expenses ────────────────────────────────────────────────────────────────
+
+function expensesRef(uid: string) {
+  return collection(db, "users", uid, "expenses");
+}
+
+export async function saveExpense(
+  uid: string,
+  expense: { description: string; amount: number; category: Category; date: string }
+): Promise<string> {
+  try {
+    const ref = await addDoc(expensesRef(uid), { ...expense, createdAt: serverTimestamp() });
+    return ref.id;
+  } catch (err) {
+    throw normalizeFirestoreError(err);
+  }
+}
+
+function mapExpenseDoc(d: { id: string; data: () => Record<string, unknown> }): Expense {
+  const data = d.data();
+  const raw = data.category as string;
+  const category: Category = (CATEGORIES as readonly string[]).includes(raw)
+    ? (raw as Category)
+    : "Otros";
+  return {
+    id: d.id,
+    description: data.description as string,
+    amount: data.amount as number,
+    category,
+    date: data.date as string,
+    createdAt: (data.createdAt as { toDate?: () => Date } | null)?.toDate?.() ?? new Date(),
+  };
+}
+
+/**
+ * Subscribes to the user's expenses ordered by date descending.
+ * Calls `callback` immediately with the current list and again on every change.
+ * Returns the unsubscribe function to clean up the listener.
+ */
+export function subscribeToExpenses(
+  uid: string,
+  callback: (expenses: Expense[]) => void,
+  onError?: (err: Error) => void
+): () => void {
+  return onSnapshot(
+    query(expensesRef(uid), orderBy("date", "desc")),
+    (snap) => callback(snap.docs.map(mapExpenseDoc)),
+    (err) => onError?.(normalizeFirestoreError(err))
+  );
+}
+
+export async function getExpenses(uid: string): Promise<Expense[]> {
+  try {
+    const snap = await getDocs(query(expensesRef(uid), orderBy("date", "desc")));
+    return snap.docs.map(mapExpenseDoc);
+  } catch (err) {
     throw normalizeFirestoreError(err);
   }
 }

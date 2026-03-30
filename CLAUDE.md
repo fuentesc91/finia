@@ -55,7 +55,7 @@ npm test           # watch mode
 
 Always handle failures for anything that depends on external systems:
 
-- **Claude API calls** (categorization): catch network errors, timeouts, and malformed responses — fall back to category "Otros" and surface a non-blocking warning to the user
+- **Claude API calls** (categorization): only fall back to `"Otros"` when Claude returns text that doesn't match the defined category list (unrecognized response). For real errors (network, auth, rate limit, etc.) throw and surface the error to the user — do NOT silently save an expense
 - **Firestore reads/writes**: catch and surface errors; never silently swallow them
 - **Firebase Auth**: all operations (`signIn`, `signUp`, `signInWithPopup`) must have try/catch with user-facing messages in Spanish
 - **Environment variables**: if a required `VITE_*` var is missing at startup, fail fast with a clear error rather than a cryptic runtime crash
@@ -63,3 +63,22 @@ Always handle failures for anything that depends on external systems:
 ## Project goal
 
 See `FINIA.md` for the full product spec. The core feature is expense registration: user provides a description + amount, Claude AI auto-assigns a category and date. Expenses are stored in Firestore per user and displayed grouped by month with combinable date/category filters.
+
+## Expense Feature
+
+**Data model** — `users/{uid}/expenses/{expenseId}` in Firestore. Fields: `description` (string), `amount` (number, currency-agnostic), `category` (one of 8 fixed values), `date` (ISO string `"YYYY-MM-DD"` in local time), `createdAt` (serverTimestamp). Types are in `app/types/expense.ts`.
+
+**Categories:** `Alimentación | Transporte | Entretenimiento | Salud | Servicios | Hogar | Ropa | Otros`
+
+**AI categorization** — inline in `home.tsx` `action()`. Uses `claude-haiku-4-5-20251001`, `max_tokens=20`. Returns `{ category }` on success or `{ error }` on any real API failure. Only falls back to `"Otros"` when Claude returns text not in the defined list. Never silently swallow API errors.
+
+**Registration flow:**
+1. Client loads API key via `getAnthropicSettings()` on mount and stores it in state
+2. User submits description + amount → `useFetcher` posts to home action with `apiKey` as a hidden field
+3. Server action calls Claude and returns `{ category }` or `{ error }`
+4. On success: client calls `saveExpense()` to write to Firestore, then prepends to local state
+5. On error: surface message to user, do NOT save
+
+**Firestore helpers** — `saveExpense` and `getExpenses` live in `app/lib/firestore.client.ts` alongside settings helpers. Follow the same `normalizeFirestoreError` pattern.
+
+**Currency** — amounts are stored as plain numbers. Display formatting lives in `app/config/currency.ts` via `formatAmount(amount, currency?)`. Default is `MXN`. When a currency setting is added to `users/{uid}/settings/main`, read it at runtime and pass it to `formatAmount` — the config file becomes the fallback. Never hardcode currency symbols elsewhere.

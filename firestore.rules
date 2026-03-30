@@ -1,0 +1,12 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Each user can only read and write documents under their own uid.
+    // This covers both:
+    //   users/{uid}/settings/main   (Anthropic API key)
+    //   users/{uid}/expenses/{id}   (expenses)
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}

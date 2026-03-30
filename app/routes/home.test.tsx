@@ -1,12 +1,16 @@
 import { describe, it, expect, vi, beforeEach, beforeAll, type Mock } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { useAuth } from "~/context/auth";
-import { getAnthropicSettings } from "~/lib/firestore.client";
 
 vi.mock("~/context/auth", () => ({ useAuth: vi.fn() }));
 vi.mock("~/lib/firebase.client", () => ({ auth: {} }));
-vi.mock("~/lib/firestore.client", () => ({ getAnthropicSettings: vi.fn() }));
 vi.mock("firebase/auth", () => ({ signOut: vi.fn() }));
+vi.mock("~/components/ExpenseForm", () => ({
+  ExpenseForm: ({ uid }: { uid: string }) => <div data-testid="expense-form" data-uid={uid} />,
+}));
+vi.mock("~/components/ExpenseList", () => ({
+  ExpenseList: ({ uid }: { uid: string }) => <div data-testid="expense-list" data-uid={uid} />,
+}));
 
 const mockNavigate = vi.fn();
 vi.mock("react-router", async (importActual) => {
@@ -21,7 +25,6 @@ vi.mock("react-router", async (importActual) => {
 });
 
 const mockUseAuth = useAuth as Mock;
-const mockGetAnthropicSettings = getAnthropicSettings as Mock;
 const FAKE_USER = { uid: "u1", displayName: "María García", email: "maria@example.com" };
 
 let Home: typeof import("~/routes/home").default;
@@ -40,45 +43,34 @@ describe("Home route", () => {
     await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/login"));
   });
 
-  it("shows spinner when loading=true (no greeting visible)", () => {
+  it("shows spinner when loading=true", () => {
     mockUseAuth.mockReturnValue({ user: null, loading: true });
     render(<Home />);
-    expect(screen.queryByText(/hola/i)).toBeNull();
+    expect(screen.queryByTestId("expense-form")).toBeNull();
   });
 
-  it("shows user displayName when available", () => {
+  it("shows user displayName in greeting", () => {
     mockUseAuth.mockReturnValue({ user: FAKE_USER, loading: false });
-    mockGetAnthropicSettings.mockResolvedValue({ apiKey: "sk-ant-x", hasCredits: true });
     render(<Home />);
     expect(screen.getByText("María García")).toBeInTheDocument();
   });
 
   it("shows user email when displayName is null", () => {
     mockUseAuth.mockReturnValue({ user: { ...FAKE_USER, displayName: null }, loading: false });
-    mockGetAnthropicSettings.mockResolvedValue({ apiKey: "sk-ant-x", hasCredits: true });
     render(<Home />);
     expect(screen.getByText("maria@example.com")).toBeInTheDocument();
   });
 
-  it("shows nudge banner when getAnthropicSettings returns null", async () => {
+  it("renders ExpenseForm and ExpenseList with the user uid", () => {
     mockUseAuth.mockReturnValue({ user: FAKE_USER, loading: false });
-    mockGetAnthropicSettings.mockResolvedValue(null);
     render(<Home />);
-    await screen.findByText(/conecta claude/i);
-  });
-
-  it("hides nudge banner when settings has hasCredits=true", async () => {
-    mockUseAuth.mockReturnValue({ user: FAKE_USER, loading: false });
-    mockGetAnthropicSettings.mockResolvedValue({ apiKey: "sk-ant-x", hasCredits: true });
-    render(<Home />);
-    await waitFor(() => expect(screen.queryByText(/conecta claude/i)).toBeNull());
+    expect(screen.getByTestId("expense-form")).toHaveAttribute("data-uid", "u1");
+    expect(screen.getByTestId("expense-list")).toHaveAttribute("data-uid", "u1");
   });
 
   it("settings icon link points to '/settings'", () => {
     mockUseAuth.mockReturnValue({ user: FAKE_USER, loading: false });
-    mockGetAnthropicSettings.mockResolvedValue(null);
     render(<Home />);
-    const link = screen.getByRole("link", { name: /configuración/i });
-    expect(link).toHaveAttribute("href", "/settings");
+    expect(screen.getByRole("link", { name: /configuración/i })).toHaveAttribute("href", "/settings");
   });
 });
