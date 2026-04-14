@@ -1,10 +1,13 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { signOut } from "firebase/auth";
 import { auth } from "~/lib/firebase.client";
 import { useAuth } from "~/context/auth";
 import { ExpenseForm } from "~/components/ExpenseForm";
 import { ExpenseList } from "~/components/ExpenseList";
+import { BudgetRibbon } from "~/components/budget/BudgetRibbon";
+import { subscribeToExpenses } from "~/lib/firestore.client";
+import type { Expense } from "~/types/expense";
 
 export function meta() {
   return [{ title: "Finia" }];
@@ -13,6 +16,12 @@ export function meta() {
 export default function Home() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+    return subscribeToExpenses(user.uid, setExpenses);
+  }, [user]);
 
   useEffect(() => {
     if (!loading && !user) navigate("/login");
@@ -31,6 +40,13 @@ export default function Home() {
       <header className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 px-6 py-4 flex items-center justify-between">
         <h1 className="text-xl font-bold text-indigo-600 dark:text-indigo-400">finia</h1>
         <div className="flex items-center gap-3">
+          <Link
+            to="/budgets"
+            aria-label="Presupuestos"
+            className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+          >
+            <BudgetIcon />
+          </Link>
           <Link
             to="/settings"
             aria-label="Configuración"
@@ -52,9 +68,21 @@ export default function Home() {
           Hola, <span className="font-medium">{user.displayName ?? user.email}</span>
         </p>
         <ExpenseForm uid={user.uid} />
+        <BudgetRibbon uid={user.uid} expenses={expenses} />
         <ExpenseList uid={user.uid} />
       </main>
     </div>
+  );
+}
+
+function BudgetIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="7" width="20" height="14" rx="2" />
+      <path d="M16 7V5a2 2 0 0 0-4 0v2" />
+      <line x1="12" y1="12" x2="12" y2="16" />
+      <line x1="10" y1="14" x2="14" y2="14" />
+    </svg>
   );
 }
 

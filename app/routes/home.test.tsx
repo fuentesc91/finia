@@ -11,6 +11,12 @@ vi.mock("~/components/ExpenseForm", () => ({
 vi.mock("~/components/ExpenseList", () => ({
   ExpenseList: ({ uid }: { uid: string }) => <div data-testid="expense-list" data-uid={uid} />,
 }));
+vi.mock("~/components/budget/BudgetRibbon", () => ({
+  BudgetRibbon: () => null,
+}));
+vi.mock("~/lib/firestore.client", () => ({
+  subscribeToExpenses: vi.fn(() => vi.fn()),
+}));
 
 const mockNavigate = vi.fn();
 vi.mock("react-router", async (importActual) => {
