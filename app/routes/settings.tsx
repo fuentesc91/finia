@@ -162,8 +162,8 @@ export default function Settings() {
 
   if (loading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
-        <div className="w-8 h-8 border-2 border-indigo-600 dark:border-indigo-400 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-near-black">
+        <div className="w-8 h-8 border-2 border-wise-green border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -174,56 +174,56 @@ export default function Settings() {
   const connectionBadge = () => {
     if (!currentKey) {
       return (
-        <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300">
+        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-[#ffd11a]">
           No conectado
         </span>
       );
     }
     if (!hasCredits) {
       return (
-        <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300">
+        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-[#ffd11a]">
           Sin créditos
         </span>
       );
     }
     return (
-      <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
+      <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-wise-mint dark:bg-[rgba(159,232,112,0.08)] text-[#054d28] dark:text-[#4caf7d]">
         ✓ Conectado
       </span>
     );
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      <header className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 px-6 py-4 flex items-center gap-3">
+    <div className="min-h-screen bg-white dark:bg-near-black">
+      <header className="bg-white dark:bg-surface-raised border-b border-wise-border dark:border-wise-border-dark px-6 py-4 flex items-center gap-3">
         <Link
           to="/"
           aria-label="Volver"
-          className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+          className="text-wise-gray dark:text-muted hover:text-near-black dark:hover:text-off-white transition-colors"
         >
           <ChevronLeftIcon />
         </Link>
-        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Configuración</h1>
+        <h1 className="text-xl font-bold text-near-black dark:text-off-white">Configuración</h1>
       </header>
 
       <main className="px-6 py-8 max-w-lg mx-auto space-y-6">
-        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6">
+        <div className="bg-white dark:bg-surface-raised rounded-[30px] border border-wise-border dark:border-wise-border-dark p-6">
           {/* Header row */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <span className="text-lg">✦</span>
-              <span className="font-semibold text-gray-900 dark:text-gray-100">Claude</span>
+              <span className="font-semibold text-near-black dark:text-off-white">Claude</span>
             </div>
             {!loadingKey && connectionBadge()}
           </div>
 
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          <p className="text-sm text-wise-gray dark:text-muted mb-4">
             Ingresa tu clave de API de Anthropic para que Finia pueda categorizar tus gastos automáticamente.{" "}
             <a
               href="https://console.anthropic.com/settings/keys"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-indigo-600 dark:text-indigo-400 hover:underline"
+              className="text-dark-green dark:text-wise-green hover:underline"
             >
               Obtener clave →
             </a>
@@ -231,10 +231,10 @@ export default function Settings() {
 
           {/* Current key display */}
           {!loadingKey && currentKey && (
-            <div className="mb-5 flex items-center justify-between rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 px-4 py-3">
+            <div className="mb-5 flex items-center justify-between rounded-xl bg-wise-mint/30 dark:bg-surface-overlay border border-wise-border dark:border-wise-border-dark px-4 py-3">
               <div>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mb-0.5">Clave actual</p>
-                <p className="font-mono text-sm text-gray-700 dark:text-gray-300">{maskAnthropicKey(currentKey)}</p>
+                <p className="text-xs text-wise-gray dark:text-muted mb-0.5">Clave actual</p>
+                <p className="font-mono text-sm text-near-black dark:text-off-white">{maskAnthropicKey(currentKey)}</p>
               </div>
               <button
                 type="button"
@@ -242,8 +242,8 @@ export default function Settings() {
                 disabled={deleting}
                 className={`text-sm transition-colors disabled:opacity-50 ${
                   deleteConfirm
-                    ? "text-red-600 dark:text-red-400 font-medium"
-                    : "text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400"
+                    ? "text-red-600 dark:text-[#f2686d] font-semibold"
+                    : "text-wise-gray dark:text-muted hover:text-red-500 dark:hover:text-[#f2686d]"
                 }`}
               >
                 {deleting ? "Eliminando..." : deleteConfirm ? "¿Confirmar?" : "Eliminar"}
@@ -254,7 +254,7 @@ export default function Settings() {
           {/* Input form */}
           <form onSubmit={handleSave} className="space-y-4">
             <div>
-              <label htmlFor="apiKey" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              <label htmlFor="apiKey" className="block text-sm font-semibold text-near-black dark:text-off-white mb-1.5">
                 {currentKey ? "Actualizar clave" : "Ingresar clave de API"}
               </label>
               <textarea
@@ -265,22 +265,22 @@ export default function Settings() {
                 value={inputKey}
                 onChange={(e) => { setInputKey(e.target.value); setDeleteConfirm(false); }}
                 placeholder="sk-ant-..."
-                className="w-full resize-none rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 px-4 py-3 text-sm outline-none focus:border-indigo-400 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900 transition-all font-mono leading-relaxed"
+                className="w-full resize-none rounded-xl border border-wise-border dark:border-wise-border-dark bg-white dark:bg-surface-overlay text-near-black dark:text-off-white placeholder-wise-gray dark:placeholder-muted px-4 py-3 text-sm outline-none focus:border-wise-green dark:focus:border-wise-green focus:ring-2 focus:ring-[rgba(159,232,112,0.2)] transition-all font-mono leading-relaxed"
               />
             </div>
 
             {error && (
-              <p className="text-sm text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-950 rounded-lg px-3 py-2">
+              <p className="text-sm text-red-500 dark:text-[#f2686d] bg-red-50 dark:bg-red-950/40 rounded-lg px-3 py-2">
                 {error}
               </p>
             )}
             {warning && (
-              <p className="text-sm text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950 rounded-lg px-3 py-2">
+              <p className="text-sm text-amber-700 dark:text-[#ffd11a] bg-amber-50 dark:bg-amber-950/40 rounded-lg px-3 py-2">
                 {warning}
               </p>
             )}
             {success && (
-              <p className="text-sm text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950 rounded-lg px-3 py-2">
+              <p className="text-sm text-[#054d28] dark:text-[#4caf7d] bg-wise-mint dark:bg-[rgba(159,232,112,0.08)] rounded-lg px-3 py-2">
                 {success}
               </p>
             )}
@@ -288,7 +288,7 @@ export default function Settings() {
             <button
               type="submit"
               disabled={isBusy || !inputKey.trim()}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 dark:bg-indigo-500 dark:hover:bg-indigo-600 dark:active:bg-indigo-700 text-white font-medium rounded-xl py-3 text-sm transition-colors disabled:opacity-50"
+              className="w-full bg-wise-green hover:scale-105 active:scale-95 text-dark-green font-semibold rounded-full py-3 text-sm transition-all disabled:opacity-50"
             >
               {isVerifying ? "Verificando..." : saving ? "Guardando..." : "Verificar y guardar"}
             </button>

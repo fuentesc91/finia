@@ -55,20 +55,20 @@ export function BudgetForm({ uid, existing, onSaved, onCancel }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+      <h3 className="font-semibold text-near-black dark:text-off-white">
         {existing ? "Editar presupuesto" : "Nuevo presupuesto"}
       </h3>
 
       {/* Period */}
       <div>
-        <label htmlFor="budget-period" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+        <label htmlFor="budget-period" className="block text-sm font-semibold text-near-black dark:text-off-white mb-1.5">
           Período
         </label>
         <select
           id="budget-period"
           value={period}
           onChange={(e) => setPeriod(e.target.value as BudgetPeriodType)}
-          className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-4 py-3 text-sm outline-none focus:border-indigo-400 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900 transition-all"
+          className="w-full rounded-xl border border-wise-border dark:border-wise-border-dark bg-white dark:bg-surface-overlay text-near-black dark:text-off-white px-4 py-3 text-sm outline-none focus:border-wise-green dark:focus:border-wise-green focus:ring-2 focus:ring-[rgba(159,232,112,0.2)] transition-all"
         >
           {periodOptions.map(([key, strategy]) => (
             <option key={key} value={key}>
@@ -80,14 +80,14 @@ export function BudgetForm({ uid, existing, onSaved, onCancel }: Props) {
 
       {/* Category */}
       <div>
-        <label htmlFor="budget-category" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+        <label htmlFor="budget-category" className="block text-sm font-semibold text-near-black dark:text-off-white mb-1.5">
           Categoría
         </label>
         <select
           id="budget-category"
           value={category}
           onChange={(e) => setCategory(e.target.value as Category | "global")}
-          className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-4 py-3 text-sm outline-none focus:border-indigo-400 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900 transition-all"
+          className="w-full rounded-xl border border-wise-border dark:border-wise-border-dark bg-white dark:bg-surface-overlay text-near-black dark:text-off-white px-4 py-3 text-sm outline-none focus:border-wise-green dark:focus:border-wise-green focus:ring-2 focus:ring-[rgba(159,232,112,0.2)] transition-all"
         >
           <option value="global">— Global (todas las categorías) —</option>
           {CATEGORIES.map((cat) => (
@@ -100,7 +100,7 @@ export function BudgetForm({ uid, existing, onSaved, onCancel }: Props) {
 
       {/* Amount */}
       <div>
-        <label htmlFor="budget-amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+        <label htmlFor="budget-amount" className="block text-sm font-semibold text-near-black dark:text-off-white mb-1.5">
           Límite
         </label>
         <input
@@ -112,12 +112,12 @@ export function BudgetForm({ uid, existing, onSaved, onCancel }: Props) {
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           placeholder="0.00"
-          className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 px-4 py-3 text-sm outline-none focus:border-indigo-400 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900 transition-all"
+          className="w-full rounded-xl border border-wise-border dark:border-wise-border-dark bg-white dark:bg-surface-overlay text-near-black dark:text-off-white placeholder-wise-gray dark:placeholder-muted px-4 py-3 text-sm outline-none focus:border-wise-green dark:focus:border-wise-green focus:ring-2 focus:ring-[rgba(159,232,112,0.2)] transition-all"
         />
       </div>
 
       {error && (
-        <p className="text-sm text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-950 rounded-lg px-3 py-2">
+        <p className="text-sm text-red-500 dark:text-[#f2686d] bg-red-50 dark:bg-red-950/40 rounded-lg px-3 py-2">
           {error}
         </p>
       )}
@@ -126,14 +126,14 @@ export function BudgetForm({ uid, existing, onSaved, onCancel }: Props) {
         <button
           type="button"
           onClick={onCancel}
-          className="flex-1 rounded-xl border border-gray-200 dark:border-gray-700 py-3 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+          className="flex-1 rounded-full border border-wise-border dark:border-wise-border-dark py-3 text-sm text-near-black dark:text-off-white hover:bg-light-surface dark:hover:bg-surface-overlay transition-all"
         >
           Cancelar
         </button>
         <button
           type="submit"
           disabled={saving || !amount.trim()}
-          className="flex-1 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white font-medium rounded-xl py-3 text-sm transition-colors disabled:opacity-50"
+          className="flex-1 bg-wise-green hover:scale-105 active:scale-95 text-dark-green font-semibold rounded-full py-3 text-sm transition-all disabled:opacity-50"
         >
           {saving ? "Guardando..." : existing ? "Actualizar" : "Guardar"}
         </button>

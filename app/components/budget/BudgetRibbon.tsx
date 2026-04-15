@@ -24,7 +24,7 @@ export function BudgetRibbon({ uid, expenses }: Props) {
 
   return (
     <div className="space-y-2">
-      <p className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide">
+      <p className="text-xs font-semibold text-wise-gray dark:text-muted uppercase tracking-wide">
         Presupuesto actual
       </p>
       <div className="flex flex-wrap gap-2">
@@ -35,10 +35,10 @@ export function BudgetRibbon({ uid, expenses }: Props) {
           const isOver = remaining < 0;
 
           const pillColor = isOver
-            ? "bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300 border-red-100 dark:border-red-900"
+            ? "bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-[#f2686d] border-red-100 dark:border-red-900/50"
             : ratio >= 0.9
-            ? "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-100 dark:border-amber-900"
-            : "bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border-indigo-100 dark:border-indigo-900";
+            ? "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-[#ffd11a] border-amber-100 dark:border-amber-900/50"
+            : "bg-wise-mint dark:bg-[rgba(159,232,112,0.08)] text-dark-green dark:text-wise-green border-wise-pastel dark:border-[rgba(159,232,112,0.30)]";
 
           const window = getPeriodWindow(budget.period, now);
           const label = budget.category ?? "Global";

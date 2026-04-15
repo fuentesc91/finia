@@ -61,7 +61,7 @@ export function BudgetList({ uid }: Props) {
 
   if (showForm) {
     return (
-      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5">
+      <div className="bg-white dark:bg-surface-raised rounded-[30px] border border-wise-border dark:border-wise-border-dark p-5">
         <BudgetForm
           uid={uid}
           existing={editingBudget ?? undefined}
@@ -75,20 +75,20 @@ export function BudgetList({ uid }: Props) {
   return (
     <div className="space-y-4">
       {error && (
-        <p className="text-sm text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-950 rounded-lg px-3 py-2">
+        <p className="text-sm text-red-500 dark:text-[#f2686d] bg-red-50 dark:bg-red-950/40 rounded-lg px-3 py-2">
           {error}
         </p>
       )}
 
       {budgets.length === 0 ? (
         <div className="text-center py-10 space-y-3">
-          <p className="text-sm text-gray-400 dark:text-gray-500">
+          <p className="text-sm text-wise-gray dark:text-muted">
             Aún no tienes presupuestos configurados.
           </p>
           <button
             type="button"
             onClick={() => setShowForm(true)}
-            className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white font-medium rounded-xl px-5 py-2.5 text-sm transition-colors"
+            className="inline-flex items-center gap-2 bg-wise-green hover:scale-105 active:scale-95 text-dark-green font-semibold rounded-full px-5 py-2.5 text-sm transition-all"
           >
             <PlusIcon />
             Nuevo presupuesto
@@ -102,18 +102,18 @@ export function BudgetList({ uid }: Props) {
               type="button"
               onClick={() => navigatePeriod(budgets[0], -1)}
               aria-label="Período anterior"
-              className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              className="text-wise-gray dark:text-muted hover:text-near-black dark:hover:text-off-white transition-colors"
             >
               <ChevronLeftIcon />
             </button>
-            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+            <span className="text-sm font-semibold text-near-black dark:text-off-white">
               {getPeriodWindow(budgets[0].period, referenceDate).label}
             </span>
             <button
               type="button"
               onClick={() => navigatePeriod(budgets[0], 1)}
               aria-label="Período siguiente"
-              className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              className="text-wise-gray dark:text-muted hover:text-near-black dark:hover:text-off-white transition-colors"
             >
               <ChevronRightIcon />
             </button>
@@ -135,7 +135,7 @@ export function BudgetList({ uid }: Props) {
           <button
             type="button"
             onClick={() => setShowForm(true)}
-            className="w-full flex items-center justify-center gap-2 border border-dashed border-gray-200 dark:border-gray-700 rounded-2xl py-4 text-sm text-gray-400 dark:text-gray-500 hover:border-indigo-300 dark:hover:border-indigo-700 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors"
+            className="w-full flex items-center justify-center gap-2 border border-dashed border-wise-border dark:border-wise-border-dark rounded-[30px] py-4 text-sm text-wise-gray dark:text-muted hover:border-wise-green dark:hover:border-wise-green hover:text-dark-green dark:hover:text-wise-green transition-colors"
           >
             <PlusIcon />
             Nuevo presupuesto

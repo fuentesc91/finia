@@ -29,10 +29,10 @@ export function BudgetProgressCard({ budget, expenses, referenceDate, onEdit, on
   // Bar color
   const barColor =
     isOver
-      ? "bg-red-500 dark:bg-red-400"
+      ? "bg-red-500 dark:bg-[#f2686d]"
       : ratio >= 0.8
-      ? "bg-amber-500 dark:bg-amber-400"
-      : "bg-indigo-500 dark:bg-indigo-400";
+      ? "bg-amber-500 dark:bg-[#ffd11a]"
+      : "bg-wise-green dark:bg-wise-green";
 
   // Recent expenses that count toward this budget (up to 3)
   const windowExpenses = expenses
@@ -45,21 +45,21 @@ export function BudgetProgressCard({ budget, expenses, referenceDate, onEdit, on
     .slice(0, 3);
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 space-y-4">
+    <div className="bg-white dark:bg-surface-raised rounded-[30px] border border-wise-border dark:border-wise-border-dark p-5 space-y-4">
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="font-semibold text-gray-900 dark:text-gray-100">
+          <p className="font-semibold text-near-black dark:text-off-white">
             {budget.category ?? "Global"}
           </p>
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{window.label}</p>
+          <p className="text-xs text-wise-gray dark:text-muted mt-0.5">{window.label}</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <button
             type="button"
             onClick={() => onEdit(budget)}
             aria-label="Editar presupuesto"
-            className="text-gray-400 dark:text-gray-500 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors"
+            className="text-wise-gray dark:text-muted hover:text-wise-green dark:hover:text-wise-green transition-colors"
           >
             <EditIcon />
           </button>
@@ -67,7 +67,7 @@ export function BudgetProgressCard({ budget, expenses, referenceDate, onEdit, on
             type="button"
             onClick={() => onDelete(budget.id)}
             aria-label="Eliminar presupuesto"
-            className="text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+            className="text-wise-gray dark:text-muted hover:text-red-500 dark:hover:text-[#f2686d] transition-colors"
           >
             <TrashIcon />
           </button>
@@ -76,36 +76,36 @@ export function BudgetProgressCard({ budget, expenses, referenceDate, onEdit, on
 
       {/* Progress bar */}
       <div>
-        <div className="h-2 w-full rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+        <div className="h-2 w-full rounded-full bg-light-surface dark:bg-surface-overlay overflow-hidden">
           <div
             className={`h-full rounded-full transition-all ${barColor}`}
             style={{ width: `${pct}%` }}
           />
         </div>
         <div className="flex items-baseline justify-between mt-1.5">
-          <span className="text-xs text-gray-500 dark:text-gray-400">
-            {formatAmount(spent)} <span className="text-gray-300 dark:text-gray-600">/</span> {formatAmount(budget.amount)}
+          <span className="text-xs text-wise-gray dark:text-muted">
+            {formatAmount(spent)} <span className="text-wise-border dark:text-wise-border-dark">/</span> {formatAmount(budget.amount)}
           </span>
-          <span className={`text-xs font-medium ${isOver ? "text-red-500 dark:text-red-400" : "text-gray-500 dark:text-gray-400"}`}>
+          <span className={`text-xs font-semibold ${isOver ? "text-red-500 dark:text-[#f2686d]" : "text-wise-gray dark:text-muted"}`}>
             {Math.round(ratio * 100)}%
           </span>
         </div>
       </div>
 
       {/* Remaining / exceeded */}
-      <p className={`text-sm font-medium ${isOver ? "text-red-500 dark:text-red-400" : "text-emerald-600 dark:text-emerald-400"}`}>
+      <p className={`text-sm font-semibold ${isOver ? "text-red-500 dark:text-[#f2686d]" : "text-[#054d28] dark:text-[#4caf7d]"}`}>
         {isOver
           ? `${formatAmount(Math.abs(remaining))} excedido`
           : `${formatAmount(remaining)} restantes`}
       </p>
 
       {/* Stats row */}
-      <div className="flex gap-4 text-xs text-gray-400 dark:text-gray-500">
+      <div className="flex gap-4 text-xs text-wise-gray dark:text-muted">
         <span>Promedio: {formatAmount(dailyBurn)}/día</span>
         <span
           className={
             projectedTotal > budget.amount
-              ? "text-amber-500 dark:text-amber-400"
+              ? "text-amber-500 dark:text-[#ffd11a]"
               : undefined
           }
         >
@@ -115,11 +115,11 @@ export function BudgetProgressCard({ budget, expenses, referenceDate, onEdit, on
 
       {/* Recent expenses */}
       {windowExpenses.length > 0 && (
-        <div className="border-t border-gray-50 dark:border-gray-800 pt-3 space-y-1.5">
+        <div className="border-t border-wise-border dark:border-wise-border-dark pt-3 space-y-1.5">
           {windowExpenses.map((e) => (
             <div key={e.id} className="flex items-center justify-between text-xs">
-              <span className="text-gray-600 dark:text-gray-400 truncate max-w-[60%]">{e.description}</span>
-              <span className="text-gray-500 dark:text-gray-500 shrink-0">{formatAmount(e.amount)}</span>
+              <span className="text-near-black/70 dark:text-off-white/70 truncate max-w-[60%]">{e.description}</span>
+              <span className="text-wise-gray dark:text-muted shrink-0">{formatAmount(e.amount)}</span>
             </div>
           ))}
         </div>
