@@ -60,25 +60,25 @@ export default function Login() {
   if (loading) return <FullScreenSpinner />;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col justify-center px-6 py-12">
+    <div className="min-h-screen bg-white dark:bg-near-black flex flex-col justify-center px-6 py-12">
       <div className="w-full max-w-sm mx-auto">
         {/* Logo / Brand */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-indigo-600 dark:text-indigo-400 tracking-tight">finia</h1>
-          <p className="mt-2 text-gray-500 dark:text-gray-400 text-sm">Tus finanzas, organizadas.</p>
+          <h1 className="text-4xl font-bold text-near-black dark:text-wise-green tracking-tight">finia</h1>
+          <p className="mt-2 text-wise-gray dark:text-muted text-sm">Tus finanzas, organizadas.</p>
         </div>
 
         {/* Card */}
-        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
+        <div className="bg-white dark:bg-surface-raised rounded-[30px] shadow-sm border border-wise-border dark:border-wise-border-dark p-6">
           {/* Mode toggle */}
-          <div className="flex rounded-xl bg-gray-100 dark:bg-gray-800 p-1 mb-6">
+          <div className="flex rounded-xl bg-light-surface dark:bg-surface-overlay p-1 mb-6">
             <button
               type="button"
               onClick={() => { setMode("login"); setError(""); }}
-              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
+              className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${
                 mode === "login"
-                  ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm"
-                  : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                  ? "bg-white dark:bg-surface-raised text-near-black dark:text-off-white shadow-sm"
+                  : "text-wise-gray dark:text-muted hover:text-near-black dark:hover:text-off-white"
               }`}
             >
               Iniciar sesión
@@ -86,10 +86,10 @@ export default function Login() {
             <button
               type="button"
               onClick={() => { setMode("register"); setError(""); }}
-              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
+              className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${
                 mode === "register"
-                  ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm"
-                  : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                  ? "bg-white dark:bg-surface-raised text-near-black dark:text-off-white shadow-sm"
+                  : "text-wise-gray dark:text-muted hover:text-near-black dark:hover:text-off-white"
               }`}
             >
               Registrarse
@@ -101,22 +101,22 @@ export default function Login() {
             type="button"
             onClick={handleGoogleLogin}
             disabled={submitting}
-            className="w-full flex items-center justify-center gap-3 border border-gray-200 dark:border-gray-700 rounded-xl py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 active:bg-gray-100 dark:active:bg-gray-700 transition-colors disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-3 border border-wise-border dark:border-wise-border-dark rounded-full py-3 px-4 text-sm font-semibold text-near-black dark:text-off-white hover:bg-light-surface dark:hover:bg-surface-overlay hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
           >
             <GoogleIcon />
             Continuar con Google
           </button>
 
           <div className="flex items-center gap-3 my-5">
-            <div className="flex-1 h-px bg-gray-100 dark:bg-gray-800" />
-            <span className="text-xs text-gray-400 dark:text-gray-500">o</span>
-            <div className="flex-1 h-px bg-gray-100 dark:bg-gray-800" />
+            <div className="flex-1 h-px bg-wise-border dark:bg-wise-border-dark" />
+            <span className="text-xs text-wise-gray dark:text-muted">o</span>
+            <div className="flex-1 h-px bg-wise-border dark:bg-wise-border-dark" />
           </div>
 
           {/* Email form */}
           <form onSubmit={handleEmailSubmit} className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              <label htmlFor="email" className="block text-sm font-semibold text-near-black dark:text-off-white mb-1.5">
                 Correo electrónico
               </label>
               <input
@@ -127,11 +127,11 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="tu@correo.com"
-                className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 px-4 py-3 text-sm outline-none focus:border-indigo-400 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900 transition-all"
+                className="w-full rounded-xl border border-wise-border dark:border-wise-border-dark bg-white dark:bg-surface-overlay text-near-black dark:text-off-white placeholder-wise-gray dark:placeholder-muted px-4 py-3 text-sm outline-none focus:border-wise-green dark:focus:border-wise-green focus:ring-2 focus:ring-[rgba(159,232,112,0.2)] transition-all"
               />
             </div>
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              <label htmlFor="password" className="block text-sm font-semibold text-near-black dark:text-off-white mb-1.5">
                 Contraseña
               </label>
               <input
@@ -143,18 +143,18 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 px-4 py-3 text-sm outline-none focus:border-indigo-400 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900 transition-all"
+                className="w-full rounded-xl border border-wise-border dark:border-wise-border-dark bg-white dark:bg-surface-overlay text-near-black dark:text-off-white placeholder-wise-gray dark:placeholder-muted px-4 py-3 text-sm outline-none focus:border-wise-green dark:focus:border-wise-green focus:ring-2 focus:ring-[rgba(159,232,112,0.2)] transition-all"
               />
             </div>
 
             {error && (
-              <p className="text-sm text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-950 rounded-lg px-3 py-2">{error}</p>
+              <p className="text-sm text-red-500 dark:text-[#f2686d] bg-red-50 dark:bg-red-950/40 rounded-lg px-3 py-2">{error}</p>
             )}
 
             <button
               type="submit"
               disabled={submitting}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 dark:bg-indigo-500 dark:hover:bg-indigo-600 dark:active:bg-indigo-700 text-white font-medium rounded-xl py-3 text-sm transition-colors disabled:opacity-50 mt-2"
+              className="w-full bg-wise-green hover:scale-105 active:scale-95 text-dark-green font-semibold rounded-full py-3 text-sm transition-all disabled:opacity-50 mt-2"
             >
               {submitting
                 ? "Cargando..."
@@ -171,8 +171,8 @@ export default function Login() {
 
 function FullScreenSpinner() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
-      <div className="w-8 h-8 border-2 border-indigo-600 dark:border-indigo-400 border-t-transparent rounded-full animate-spin" />
+    <div className="min-h-screen flex items-center justify-center bg-white dark:bg-near-black">
+      <div className="w-8 h-8 border-2 border-wise-green border-t-transparent rounded-full animate-spin" />
     </div>
   );
 }

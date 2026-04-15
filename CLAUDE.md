@@ -11,6 +11,10 @@ npm run start      # Serve production build
 npm run typecheck  # Run react-router typegen + tsc
 ```
 
+## UI & Design
+
+Before writing any UI code, read `DESIGN.md` and apply its guidelines: Wise Sans 900 / 0.85 line-height for display, Wise Green (`#9fe870`) with Dark Green (`#163300`) text for primary CTAs, Inter 600 as body default, pill buttons (9999px radius), scale(1.05/0.95) hover/active animations, ring shadows only, and `"calt"` on all text. Always add `dark:` Tailwind variants using the dark-mode palette defined in `DESIGN.md` — dark surfaces (`#0e0f0c` → `#161a13` → `#1e2419`), off-white text (`#f0f4ed`), and opacity-based borders.
+
 ## Architecture
 
 **Stack:** React Router v7 (Remix successor) + Vite + TypeScript + Tailwind CSS v4 + Firebase

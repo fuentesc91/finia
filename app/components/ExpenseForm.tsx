@@ -100,22 +100,22 @@ export function ExpenseForm({ uid }: Props) {
       {claudeConnected === false && (
         <Link
           to="/settings"
-          className="flex items-center gap-3 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950 px-4 py-3 text-sm text-amber-700 dark:text-amber-300 transition-colors hover:bg-amber-100 dark:hover:bg-amber-900"
+          className="flex items-center gap-3 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 px-4 py-3 text-sm text-amber-700 dark:text-[#ffd11a] transition-colors hover:bg-amber-100 dark:hover:bg-amber-900/40"
         >
           <span>✦</span>
           <span>Conecta Claude para categorizar tus gastos automáticamente.</span>
-          <span className="ml-auto text-amber-500 dark:text-amber-400">→</span>
+          <span className="ml-auto text-amber-500 dark:text-[#ffd11a]">→</span>
         </Link>
       )}
 
       <form
         onSubmit={handleSubmit}
-        className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 space-y-4"
+        className="bg-white dark:bg-surface-raised rounded-[30px] border border-wise-border dark:border-wise-border-dark p-5 space-y-4"
       >
         <div>
           <label
             htmlFor="description"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+            className="block text-sm font-semibold text-near-black dark:text-off-white mb-1.5"
           >
             Descripción
           </label>
@@ -126,19 +126,19 @@ export function ExpenseForm({ uid }: Props) {
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Ej: Almuerzo en restaurante, Uber al aeropuerto..."
             disabled={isSubmitting}
-            className="w-full resize-none rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 px-4 py-3 text-sm outline-none focus:border-indigo-400 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900 transition-all disabled:opacity-50"
+            className="w-full resize-none rounded-xl border border-wise-border dark:border-wise-border-dark bg-white dark:bg-surface-overlay text-near-black dark:text-off-white placeholder-wise-gray dark:placeholder-muted px-4 py-3 text-sm outline-none focus:border-wise-green dark:focus:border-wise-green focus:ring-2 focus:ring-[rgba(159,232,112,0.2)] transition-all disabled:opacity-50"
           />
         </div>
 
         <div>
           <label
             htmlFor="amount"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+            className="block text-sm font-semibold text-near-black dark:text-off-white mb-1.5"
           >
             Monto
           </label>
           <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400 dark:text-gray-500 select-none">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-wise-gray dark:text-muted select-none">
               {DEFAULT_CURRENCY}
             </span>
             <input
@@ -150,13 +150,13 @@ export function ExpenseForm({ uid }: Props) {
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0.00"
               disabled={isSubmitting}
-              className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 pl-14 pr-4 py-3 text-sm outline-none focus:border-indigo-400 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900 transition-all disabled:opacity-50"
+              className="w-full rounded-xl border border-wise-border dark:border-wise-border-dark bg-white dark:bg-surface-overlay text-near-black dark:text-off-white placeholder-wise-gray dark:placeholder-muted pl-14 pr-4 py-3 text-sm outline-none focus:border-wise-green dark:focus:border-wise-green focus:ring-2 focus:ring-[rgba(159,232,112,0.2)] transition-all disabled:opacity-50"
             />
           </div>
         </div>
 
         {shownError && (
-          <p className="text-sm text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-950 rounded-lg px-3 py-2">
+          <p className="text-sm text-red-500 dark:text-[#f2686d] bg-red-50 dark:bg-red-950/40 rounded-lg px-3 py-2">
             {shownError}
           </p>
         )}
@@ -164,7 +164,7 @@ export function ExpenseForm({ uid }: Props) {
         <button
           type="submit"
           disabled={isSubmitting || !claudeConnected}
-          className="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 dark:bg-indigo-500 dark:hover:bg-indigo-600 dark:active:bg-indigo-700 text-white font-medium rounded-xl py-3 text-sm transition-colors disabled:opacity-50"
+          className="w-full bg-wise-green hover:scale-105 active:scale-95 text-dark-green font-semibold rounded-full py-3 text-sm transition-all disabled:opacity-50"
         >
           {isSubmitting ? "Categorizando..." : "Registrar gasto"}
         </button>

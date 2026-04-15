@@ -29,34 +29,34 @@ export default function Home() {
 
   if (loading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
-        <div className="w-8 h-8 border-2 border-indigo-600 dark:border-indigo-400 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-near-black">
+        <div className="w-8 h-8 border-2 border-wise-green border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      <header className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 px-6 py-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-indigo-600 dark:text-indigo-400">finia</h1>
+    <div className="min-h-screen bg-white dark:bg-near-black">
+      <header className="bg-white dark:bg-surface-raised border-b border-wise-border dark:border-wise-border-dark px-6 py-4 flex items-center justify-between">
+        <h1 className="text-xl font-bold text-near-black dark:text-wise-green">finia</h1>
         <div className="flex items-center gap-3">
           <Link
             to="/budgets"
             aria-label="Presupuestos"
-            className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            className="text-wise-gray dark:text-muted hover:text-near-black dark:hover:text-off-white transition-colors"
           >
             <BudgetIcon />
           </Link>
           <Link
             to="/settings"
             aria-label="Configuración"
-            className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            className="text-wise-gray dark:text-muted hover:text-near-black dark:hover:text-off-white transition-colors"
           >
             <SettingsIcon />
           </Link>
           <button
             onClick={() => signOut(auth)}
-            className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+            className="text-sm text-wise-gray dark:text-muted hover:text-near-black dark:hover:text-off-white transition-colors"
           >
             Cerrar sesión
           </button>
@@ -64,8 +64,8 @@ export default function Home() {
       </header>
 
       <main className="px-6 py-8 max-w-lg mx-auto space-y-6">
-        <p className="text-gray-700 dark:text-gray-300">
-          Hola, <span className="font-medium">{user.displayName ?? user.email}</span>
+        <p className="text-near-black dark:text-off-white">
+          Hola, <span className="font-semibold">{user.displayName ?? user.email}</span>
         </p>
         <ExpenseForm uid={user.uid} />
         <BudgetRibbon uid={user.uid} expenses={expenses} />

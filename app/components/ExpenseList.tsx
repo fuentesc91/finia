@@ -27,7 +27,7 @@ export function ExpenseList({ uid }: Props) {
 
   if (expenses.length === 0) {
     return (
-      <p className="text-center text-sm text-gray-400 dark:text-gray-500 py-8">
+      <p className="text-center text-sm text-wise-gray dark:text-muted py-8">
         Aún no tienes gastos registrados. ¡Empieza arriba!
       </p>
     );
@@ -40,28 +40,28 @@ export function ExpenseList({ uid }: Props) {
       {grouped.map(([month, monthExpenses]) => (
         <section key={month}>
           <div className="flex items-baseline justify-between mb-3">
-            <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide capitalize">
+            <h2 className="text-sm font-semibold text-wise-gray dark:text-muted uppercase tracking-wide capitalize">
               {monthLabel(month)}
             </h2>
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <span className="text-sm font-semibold text-near-black dark:text-off-white">
               {formatAmount(monthExpenses.reduce((sum, e) => sum + e.amount, 0))}
             </span>
           </div>
-          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 divide-y divide-gray-50 dark:divide-gray-800">
+          <div className="bg-white dark:bg-surface-raised rounded-[30px] border border-wise-border dark:border-wise-border-dark divide-y divide-wise-border dark:divide-wise-border-dark">
             {monthExpenses.map((expense) => (
               <div key={expense.id} className="flex items-center gap-3 px-5 py-4">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-gray-900 dark:text-gray-100 truncate">
+                  <p className="text-sm text-near-black dark:text-off-white truncate">
                     {expense.description}
                   </p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                  <p className="text-xs text-wise-gray dark:text-muted mt-0.5">
                     {formatDate(expense.date)}
                   </p>
                 </div>
-                <span className="shrink-0 text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
+                <span className="shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full bg-wise-mint dark:bg-[rgba(159,232,112,0.08)] text-dark-green dark:text-wise-green">
                   {expense.category}
                 </span>
-                <span className="shrink-0 text-sm font-medium text-gray-900 dark:text-gray-100">
+                <span className="shrink-0 text-sm font-semibold text-near-black dark:text-off-white">
                   {formatAmount(expense.amount)}
                 </span>
               </div>
