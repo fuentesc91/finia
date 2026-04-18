@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
+import { EXPENSES_PAGE_SIZE } from "./configs";
 
 vi.mock("~/lib/firebase.client", () => ({ db: {} }));
 vi.mock("firebase/firestore", () => ({
@@ -206,11 +207,11 @@ describe("getExpensesPage", () => {
       id,
       data: () => ({ description: "X", amount: 10, category: "Otros", date: "2026-01-01", createdAt: null }),
     });
-    // default pageSize is 30, so return 31 docs
-    mockGetDocs.mockResolvedValue({ docs: Array.from({ length: 31 }, (_, i) => makeFakeDoc(`e${i}`)) });
+    // default pageSize is EXPENSES_PAGE_SIZE, so return EXPENSES_PAGE_SIZE + 1 docs
+    mockGetDocs.mockResolvedValue({ docs: Array.from({ length: EXPENSES_PAGE_SIZE + 1 }, (_, i) => makeFakeDoc(`e${i}`)) });
     const result = await getExpensesPage("uid1", CURSOR);
     expect(result.hasMore).toBe(true);
-    expect(result.expenses).toHaveLength(30);
+    expect(result.expenses).toHaveLength(EXPENSES_PAGE_SIZE);
   });
 
   it("throws a normalized Spanish error on unavailable", async () => {

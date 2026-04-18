@@ -10,6 +10,7 @@ import {
 import { render, screen, act } from "@testing-library/react";
 import { subscribeToExpenses, getExpensesPage } from "~/lib/firestore.client";
 import type { Expense } from "~/types/expense";
+import { EXPENSES_PAGE_SIZE } from "~/lib/configs";
 
 vi.mock("~/lib/firebase.client", () => ({ db: {} }));
 vi.mock("~/lib/firestore.client", () => ({
@@ -27,12 +28,33 @@ function fakeSubscribe(expenses: Expense[]) {
   });
 }
 
-function makeExpense(id: string, date = "2026-03-15", createdAt = new Date("2026-03-15T10:00:00Z")): Expense {
-  return { id, description: `Gasto ${id}`, amount: 100, category: "Transporte", date, createdAt };
+function makeExpense(
+  id: string,
+  date = "2026-03-15",
+  createdAt = new Date("2026-03-15T10:00:00Z"),
+): Expense {
+  return {
+    id,
+    description: `Gasto ${id}`,
+    amount: 100,
+    category: "Transporte",
+    date,
+    createdAt,
+  };
 }
 
-const UBER: Expense = { ...makeExpense("e1"), description: "Uber", category: "Transporte", amount: 85.5 };
-const SUPER: Expense = { ...makeExpense("e2", "2026-02-10", new Date("2026-02-10T10:00:00Z")), description: "Supermercado", category: "Alimentación", amount: 320 };
+const UBER: Expense = {
+  ...makeExpense("e1"),
+  description: "Uber",
+  category: "Transporte",
+  amount: 85.5,
+};
+const SUPER: Expense = {
+  ...makeExpense("e2", "2026-02-10", new Date("2026-02-10T10:00:00Z")),
+  description: "Supermercado",
+  category: "Alimentación",
+  amount: 320,
+};
 
 let ExpenseList: typeof import("~/components/expenses/ExpenseList").ExpenseList;
 beforeAll(async () => {
@@ -51,7 +73,9 @@ describe("ExpenseList", () => {
   it("shows empty state message when there are no expenses", () => {
     fakeSubscribe([]);
     render(<ExpenseList uid="u1" />);
-    expect(screen.getByText(/aún no tienes gastos registrados/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/aún no tienes gastos registrados/i),
+    ).toBeInTheDocument();
   });
 
   it("renders expense descriptions", () => {
@@ -100,51 +124,96 @@ describe("ExpenseList", () => {
   });
 
   describe("pagination", () => {
-    it("passes pageSize=30 to subscribeToExpenses", () => {
+    it("passes pageSize=EXPENSES_PAGE_SIZE to subscribeToExpenses", () => {
       fakeSubscribe([]);
       render(<ExpenseList uid="u1" />);
-      expect(mockSubscribe).toHaveBeenCalledWith("u1", expect.any(Function), expect.any(Function), 30);
+      expect(mockSubscribe).toHaveBeenCalledWith(
+        "u1",
+        expect.any(Function),
+        expect.any(Function),
+        EXPENSES_PAGE_SIZE,
+      );
     });
 
-    it("reports hasMore=false when subscription returns fewer than 30 expenses", () => {
+    it("reports hasMore=false when subscription returns fewer than EXPENSES_PAGE_SIZE expenses", () => {
       fakeSubscribe([UBER, SUPER]);
       let capturedHasMore = true;
-      render(<ExpenseList uid="u1" onLoadMore={(_fn, hasMore) => { capturedHasMore = hasMore; }} />);
+      render(
+        <ExpenseList
+          uid="u1"
+          onLoadMore={(_fn, hasMore) => {
+            capturedHasMore = hasMore;
+          }}
+        />,
+      );
       expect(capturedHasMore).toBe(false);
     });
 
-    it("reports hasMore=true when subscription returns exactly 30 expenses", () => {
-      const expenses = Array.from({ length: 30 }, (_, i) => makeExpense(`e${i}`));
+    it("reports hasMore=true when subscription returns exactly EXPENSES_PAGE_SIZE expenses", () => {
+      const expenses = Array.from({ length: EXPENSES_PAGE_SIZE }, (_, i) =>
+        makeExpense(`e${i}`),
+      );
       fakeSubscribe(expenses);
       let capturedHasMore = false;
-      render(<ExpenseList uid="u1" onLoadMore={(_fn, hasMore) => { capturedHasMore = hasMore; }} />);
+      render(
+        <ExpenseList
+          uid="u1"
+          onLoadMore={(_fn, hasMore) => {
+            capturedHasMore = hasMore;
+          }}
+        />,
+      );
       expect(capturedHasMore).toBe(true);
     });
 
     it("loadMore fetches next page using last expense as cursor and appends results", async () => {
-      const older = { ...makeExpense("e-old", "2025-12-01", new Date("2025-12-01T10:00:00Z")), description: "Gasto antiguo" };
+      const older = {
+        ...makeExpense("e-old", "2025-12-01", new Date("2025-12-01T10:00:00Z")),
+        description: "Gasto antiguo",
+      };
       mockGetPage.mockResolvedValueOnce({ expenses: [older], hasMore: false });
       fakeSubscribe([UBER]);
 
       let capturedLoadMore: (() => Promise<void>) | undefined;
-      const onLoadMore = vi.fn((fn: () => Promise<void>) => { capturedLoadMore = fn; });
+      const onLoadMore = vi.fn((fn: () => Promise<void>) => {
+        capturedLoadMore = fn;
+      });
       render(<ExpenseList uid="u1" onLoadMore={onLoadMore} />);
 
-      await act(async () => { await capturedLoadMore?.(); });
+      await act(async () => {
+        await capturedLoadMore?.();
+      });
 
-      expect(mockGetPage).toHaveBeenCalledWith("u1", UBER.createdAt, 30);
+      expect(mockGetPage).toHaveBeenCalledWith(
+        "u1",
+        UBER.createdAt,
+        EXPENSES_PAGE_SIZE,
+      );
       expect(screen.getByText("Gasto antiguo")).toBeInTheDocument();
     });
 
     it("sets hasMore=false after loading last page", async () => {
-      mockGetPage.mockResolvedValueOnce({ expenses: [makeExpense("e-old", "2025-12-01")], hasMore: false });
+      mockGetPage.mockResolvedValueOnce({
+        expenses: [makeExpense("e-old", "2025-12-01")],
+        hasMore: false,
+      });
       fakeSubscribe([UBER]);
 
       let capturedLoadMore: (() => Promise<void>) | undefined;
       let capturedHasMore = true;
-      render(<ExpenseList uid="u1" onLoadMore={(fn, hasMore) => { capturedLoadMore = fn; capturedHasMore = hasMore; }} />);
+      render(
+        <ExpenseList
+          uid="u1"
+          onLoadMore={(fn, hasMore) => {
+            capturedLoadMore = fn;
+            capturedHasMore = hasMore;
+          }}
+        />,
+      );
 
-      await act(async () => { await capturedLoadMore?.(); });
+      await act(async () => {
+        await capturedLoadMore?.();
+      });
 
       expect(capturedHasMore).toBe(false);
     });
@@ -154,16 +223,23 @@ describe("ExpenseList", () => {
       fakeSubscribe([UBER]);
 
       let capturedLoadMore: (() => Promise<void>) | undefined;
-      const onLoadMore = vi.fn((fn: () => Promise<void>) => { capturedLoadMore = fn; });
+      const onLoadMore = vi.fn((fn: () => Promise<void>) => {
+        capturedLoadMore = fn;
+      });
       render(<ExpenseList uid="u1" onLoadMore={onLoadMore} />);
 
-      await act(async () => { await capturedLoadMore?.(); });
+      await act(async () => {
+        await capturedLoadMore?.();
+      });
 
       expect(screen.getByText("Sin conexión")).toBeInTheDocument();
     });
 
     it("resets moreExpenses when uid changes", () => {
-      const older = { ...makeExpense("e-old", "2025-12-01"), description: "Gasto antiguo" };
+      const older = {
+        ...makeExpense("e-old", "2025-12-01"),
+        description: "Gasto antiguo",
+      };
       mockGetPage.mockResolvedValueOnce({ expenses: [older], hasMore: false });
 
       // Start with UBER, then change uid — older expenses from load-more should disappear
