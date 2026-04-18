@@ -7,8 +7,8 @@ import {
   beforeAll,
   type Mock,
 } from "vitest";
-import { render, screen, act } from "@testing-library/react";
-import { subscribeToExpenses, getExpensesPage } from "~/lib/firestore.client";
+import { render, screen, act, fireEvent } from "@testing-library/react";
+import { subscribeToExpenses, getExpensesPage, deleteExpense, updateExpense } from "~/lib/firestore.client";
 import type { Expense } from "~/types/expense";
 import { EXPENSES_PAGE_SIZE } from "~/lib/configs";
 
@@ -16,10 +16,56 @@ vi.mock("~/lib/firebase.client", () => ({ db: {} }));
 vi.mock("~/lib/firestore.client", () => ({
   subscribeToExpenses: vi.fn(),
   getExpensesPage: vi.fn(),
+  deleteExpense: vi.fn(),
+  updateExpense: vi.fn(),
+}));
+vi.mock("~/components/ui/SwipeableRow", () => ({
+  SwipeableRow: ({ children, onTap, actions, disabled }: {
+    children: React.ReactNode;
+    onTap?: () => void;
+    actions: Array<{ label: string; onAction: () => void }>;
+    disabled?: boolean;
+  }) => (
+    <div data-testid="swipeable-row">
+      <div
+        data-testid="row-content"
+        data-disabled={disabled}
+        onClick={onTap}
+        role="button"
+        tabIndex={0}
+      >
+        {children}
+      </div>
+      {actions.map((a, i) => (
+        <button key={i} data-testid={`action-${i}`} onClick={a.onAction}>
+          {a.label}
+        </button>
+      ))}
+    </div>
+  ),
+}));
+vi.mock("~/components/ui/DataEditSheet", () => ({
+  DataEditSheet: ({ open, onClose, title, onSave, children }: {
+    open: boolean;
+    onClose: () => void;
+    title?: string;
+    onSave: () => Promise<void>;
+    children: React.ReactNode;
+  }) =>
+    open ? (
+      <div data-testid="data-edit-sheet">
+        {title && <span data-testid="sheet-title">{title}</span>}
+        {children}
+        <button data-testid="sheet-save" onClick={() => onSave()}>Guardar</button>
+        <button data-testid="sheet-cancel" onClick={onClose}>Cancelar</button>
+      </div>
+    ) : null,
 }));
 
 const mockSubscribe = subscribeToExpenses as Mock;
 const mockGetPage = getExpensesPage as Mock;
+const mockDelete = deleteExpense as Mock;
+const mockUpdate = updateExpense as Mock;
 
 function fakeSubscribe(expenses: Expense[]) {
   mockSubscribe.mockImplementation((_uid, callback) => {
@@ -250,6 +296,103 @@ describe("ExpenseList", () => {
       rerender(<ExpenseList uid="u2" />);
 
       expect(screen.queryByText("Gasto antiguo")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("edit and delete", () => {
+    it("tapping a row opens DataEditSheet with title 'Editar gasto'", () => {
+      fakeSubscribe([UBER]);
+      render(<ExpenseList uid="u1" />);
+
+      expect(screen.queryByTestId("data-edit-sheet")).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getAllByTestId("row-content")[0]);
+
+      expect(screen.getByTestId("data-edit-sheet")).toBeInTheDocument();
+      expect(screen.getByTestId("sheet-title")).toHaveTextContent("Editar gasto");
+    });
+
+    it("DataEditSheet is closed when editingExpense is null initially", () => {
+      fakeSubscribe([UBER]);
+      render(<ExpenseList uid="u1" />);
+      expect(screen.queryByTestId("data-edit-sheet")).not.toBeInTheDocument();
+    });
+
+    it("clicking delete action calls deleteExpense with correct uid and id", async () => {
+      mockDelete.mockResolvedValue(undefined);
+      fakeSubscribe([UBER]);
+      render(<ExpenseList uid="u1" />);
+
+      await act(async () => {
+        fireEvent.click(screen.getAllByTestId("action-0")[0]);
+      });
+
+      expect(mockDelete).toHaveBeenCalledWith("u1", UBER.id);
+    });
+
+    it("shows delete error when deleteExpense rejects", async () => {
+      mockDelete.mockRejectedValue(new Error("Sin conexión"));
+      fakeSubscribe([UBER]);
+      render(<ExpenseList uid="u1" />);
+
+      await act(async () => {
+        fireEvent.click(screen.getAllByTestId("action-0")[0]);
+      });
+
+      expect(screen.getByText("Sin conexión")).toBeInTheDocument();
+    });
+
+    it("row is disabled while delete is in-flight", async () => {
+      let resolveDelete!: () => void;
+      mockDelete.mockReturnValue(new Promise<void>((r) => { resolveDelete = r; }));
+      fakeSubscribe([UBER]);
+      render(<ExpenseList uid="u1" />);
+
+      fireEvent.click(screen.getAllByTestId("action-0")[0]);
+
+      expect(screen.getAllByTestId("row-content")[0]).toHaveAttribute("data-disabled", "true");
+
+      await act(async () => { resolveDelete(); });
+    });
+
+    it("edit sheet pre-fills description field from expense", () => {
+      fakeSubscribe([UBER]);
+      render(<ExpenseList uid="u1" />);
+
+      fireEvent.click(screen.getAllByTestId("row-content")[0]);
+
+      const descInput = screen.getByLabelText(/descripción/i) as HTMLInputElement;
+      expect(descInput.value).toBe(UBER.description);
+    });
+
+    it("edit sheet onSave calls updateExpense with correct payload", async () => {
+      mockUpdate.mockResolvedValue(undefined);
+      fakeSubscribe([UBER]);
+      render(<ExpenseList uid="u1" />);
+
+      fireEvent.click(screen.getAllByTestId("row-content")[0]);
+
+      await act(async () => {
+        fireEvent.click(screen.getByTestId("sheet-save"));
+      });
+
+      expect(mockUpdate).toHaveBeenCalledWith(
+        "u1",
+        UBER.id,
+        expect.objectContaining({ description: UBER.description, amount: UBER.amount }),
+      );
+    });
+
+    it("resets editingExpense and deletingId when uid changes", () => {
+      fakeSubscribe([UBER]);
+      const { rerender } = render(<ExpenseList uid="u1" />);
+      fireEvent.click(screen.getAllByTestId("row-content")[0]);
+      expect(screen.getByTestId("data-edit-sheet")).toBeInTheDocument();
+
+      fakeSubscribe([SUPER]);
+      rerender(<ExpenseList uid="u2" />);
+
+      expect(screen.queryByTestId("data-edit-sheet")).not.toBeInTheDocument();
     });
   });
 });

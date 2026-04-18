@@ -3,6 +3,7 @@ import {
   getDoc,
   setDoc,
   updateDoc,
+  deleteDoc,
   deleteField,
   serverTimestamp,
   addDoc,
@@ -106,6 +107,32 @@ export function subscribeToExpenses(
     (snap) => callback(snap.docs.map(mapExpenseDoc)),
     (err) => onError?.(normalizeFirestoreError(err))
   );
+}
+
+export async function updateExpense(
+  uid: string,
+  expenseId: string,
+  updates: { description: string; amount: number; category: Category; date: string }
+): Promise<void> {
+  try {
+    await updateDoc(doc(db, "users", uid, "expenses", expenseId), {
+      ...updates,
+      updatedAt: serverTimestamp(),
+    });
+  } catch (err) {
+    throw normalizeFirestoreError(err);
+  }
+}
+
+export async function deleteExpense(uid: string, expenseId: string): Promise<void> {
+  try {
+    await deleteDoc(doc(db, "users", uid, "expenses", expenseId));
+  } catch (err) {
+    if (err && typeof err === "object" && "code" in err && (err as { code: string }).code === "not-found") {
+      return;
+    }
+    throw normalizeFirestoreError(err);
+  }
 }
 
 export async function getExpensesPage(

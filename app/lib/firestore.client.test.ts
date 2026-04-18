@@ -7,6 +7,7 @@ vi.mock("firebase/firestore", () => ({
   getDoc: vi.fn(),
   setDoc: vi.fn(),
   updateDoc: vi.fn(),
+  deleteDoc: vi.fn(),
   deleteField: vi.fn(() => "DELETE_SENTINEL"),
   serverTimestamp: vi.fn(() => "TIMESTAMP_SENTINEL"),
   addDoc: vi.fn(),
@@ -19,13 +20,14 @@ vi.mock("firebase/firestore", () => ({
   startAfter: vi.fn(),
 }));
 
-import { saveAnthropicKey, getAnthropicSettings, deleteAnthropicKey, saveExpense, getExpensesPage, subscribeToExpenses } from "~/lib/firestore.client";
-import { doc, getDoc, setDoc, updateDoc, addDoc, collection, getDocs, onSnapshot, query } from "firebase/firestore";
+import { saveAnthropicKey, getAnthropicSettings, deleteAnthropicKey, saveExpense, updateExpense, deleteExpense, getExpensesPage, subscribeToExpenses } from "~/lib/firestore.client";
+import { doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, collection, getDocs, onSnapshot, query } from "firebase/firestore";
 
 const mockDoc = doc as Mock;
 const mockGetDoc = getDoc as Mock;
 const mockSetDoc = setDoc as Mock;
 const mockUpdateDoc = updateDoc as Mock;
+const mockDeleteDoc = deleteDoc as Mock;
 const mockAddDoc = addDoc as Mock;
 const mockCollection = collection as Mock;
 const mockGetDocs = getDocs as Mock;
@@ -142,6 +144,58 @@ describe("saveExpense", () => {
   it("throws a normalized Spanish error on permission-denied", async () => {
     mockAddDoc.mockRejectedValue({ code: "permission-denied" });
     await expect(saveExpense("uid1", EXPENSE)).rejects.toThrow(
+      "No tienes permiso para realizar esta acción."
+    );
+  });
+});
+
+describe("updateExpense", () => {
+  const UPDATES = { description: "Lunch updated", amount: 200, category: "Alimentación" as const, date: "2026-04-01" };
+  const FAKE_EXPENSE_REF = { path: "users/uid1/expenses/exp1" };
+
+  beforeEach(() => {
+    mockDoc.mockReturnValue(FAKE_EXPENSE_REF);
+  });
+
+  it("calls updateDoc with correct doc ref path and payload including updatedAt", async () => {
+    mockUpdateDoc.mockResolvedValue(undefined);
+    await updateExpense("uid1", "exp1", UPDATES);
+    expect(mockUpdateDoc).toHaveBeenCalledOnce();
+    const [ref, data] = mockUpdateDoc.mock.calls[0];
+    expect(ref).toBe(FAKE_EXPENSE_REF);
+    expect(data).toMatchObject({ ...UPDATES, updatedAt: "TIMESTAMP_SENTINEL" });
+  });
+
+  it("throws a normalized Spanish error on permission-denied", async () => {
+    mockUpdateDoc.mockRejectedValue({ code: "permission-denied" });
+    await expect(updateExpense("uid1", "exp1", UPDATES)).rejects.toThrow(
+      "No tienes permiso para realizar esta acción."
+    );
+  });
+});
+
+describe("deleteExpense", () => {
+  const FAKE_EXPENSE_REF = { path: "users/uid1/expenses/exp1" };
+
+  beforeEach(() => {
+    mockDoc.mockReturnValue(FAKE_EXPENSE_REF);
+  });
+
+  it("calls deleteDoc with correct doc ref", async () => {
+    mockDeleteDoc.mockResolvedValue(undefined);
+    await deleteExpense("uid1", "exp1");
+    expect(mockDeleteDoc).toHaveBeenCalledOnce();
+    expect(mockDeleteDoc.mock.calls[0][0]).toBe(FAKE_EXPENSE_REF);
+  });
+
+  it("silently resolves when expense is not-found (idempotent)", async () => {
+    mockDeleteDoc.mockRejectedValue({ code: "not-found" });
+    await expect(deleteExpense("uid1", "exp1")).resolves.toBeUndefined();
+  });
+
+  it("throws a normalized Spanish error on permission-denied", async () => {
+    mockDeleteDoc.mockRejectedValue({ code: "permission-denied" });
+    await expect(deleteExpense("uid1", "exp1")).rejects.toThrow(
       "No tienes permiso para realizar esta acción."
     );
   });
