@@ -15,7 +15,7 @@ import {
   startAfter,
 } from "firebase/firestore";
 // This can live in a configuration file
-const EXPENSES_PAGE_SIZE = 10;
+const EXPENSES_PAGE_SIZE = 30;
 import { db } from "~/lib/firebase.client";
 import { CATEGORIES, type Category, type Expense } from "~/types/expense";
 import { normalizeFirestoreError } from "~/lib/helpers";
