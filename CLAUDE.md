@@ -55,6 +55,10 @@ npm test           # watch mode
 - Mock `react-router`'s `useNavigate`, `useFetcher`, and `Link` to keep tests self-contained.
 - For `useFetcher`, use a mutable object (`fetcherState`) and call `rerender()` inside `act()` to simulate server action responses.
 
+## Helper functions
+
+Before writing any pure utility function (date math, formatting, grouping, string manipulation, etc.), search `app/lib/helpers.ts` for an existing function that covers the need. If one exists, import it — do not duplicate it inline. If no suitable function exists, add it to `app/lib/helpers.ts` as an exported function and import it from there. Never define reusable helper logic as a private function inside a component or route file.
+
 ## Error handling
 
 Always handle failures for anything that depends on external systems:

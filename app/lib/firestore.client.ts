@@ -11,22 +11,14 @@ import {
   onSnapshot,
   orderBy,
   query,
+  limit,
+  startAfter,
 } from "firebase/firestore";
+// This can live in a configuration file
+const EXPENSES_PAGE_SIZE = 30;
 import { db } from "~/lib/firebase.client";
 import { CATEGORIES, type Category, type Expense } from "~/types/expense";
-
-function normalizeFirestoreError(err: unknown): Error {
-  if (err && typeof err === "object" && "code" in err) {
-    const code = (err as { code: string }).code;
-    const messages: Record<string, string> = {
-      "permission-denied": "No tienes permiso para realizar esta acción.",
-      "unavailable": "Servicio no disponible. Verifica tu conexión.",
-      "not-found": "No se encontró el documento.",
-    };
-    return new Error(messages[code] ?? "Error al acceder a los datos. Intenta de nuevo.");
-  }
-  return new Error("Error desconocido. Intenta de nuevo.");
-}
+import { normalizeFirestoreError } from "~/lib/helpers";
 
 function settingsRef(uid: string) {
   return doc(db, "users", uid, "settings", "main");
@@ -103,27 +95,36 @@ function mapExpenseDoc(d: { id: string; data: () => Record<string, unknown> }): 
   };
 }
 
-/**
- * Subscribes to the user's expenses ordered by date descending.
- * Calls `callback` immediately with the current list and again on every change.
- * Returns the unsubscribe function to clean up the listener.
- */
 export function subscribeToExpenses(
   uid: string,
   callback: (expenses: Expense[]) => void,
-  onError?: (err: Error) => void
+  onError?: (err: Error) => void,
+  pageSize = EXPENSES_PAGE_SIZE
 ): () => void {
   return onSnapshot(
-    query(expensesRef(uid), orderBy("date", "desc")),
+    query(expensesRef(uid), orderBy("createdAt", "desc"), limit(pageSize)),
     (snap) => callback(snap.docs.map(mapExpenseDoc)),
     (err) => onError?.(normalizeFirestoreError(err))
   );
 }
 
-export async function getExpenses(uid: string): Promise<Expense[]> {
+export async function getExpensesPage(
+  uid: string,
+  afterDate: Date,
+  pageSize = EXPENSES_PAGE_SIZE
+): Promise<{ expenses: Expense[]; hasMore: boolean }> {
   try {
-    const snap = await getDocs(query(expensesRef(uid), orderBy("date", "desc")));
-    return snap.docs.map(mapExpenseDoc);
+    const snap = await getDocs(
+      query(
+        expensesRef(uid),
+        orderBy("createdAt", "desc"),
+        startAfter(afterDate),
+        limit(pageSize + 1),
+      )
+    );
+    const hasMore = snap.docs.length > pageSize;
+    const expenses = snap.docs.slice(0, pageSize).map(mapExpenseDoc);
+    return { expenses, hasMore };
   } catch (err) {
     throw normalizeFirestoreError(err);
   }

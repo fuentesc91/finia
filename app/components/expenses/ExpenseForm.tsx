@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useFetcher } from "react-router";
 import { getAnthropicSettings, saveExpense } from "~/lib/firestore.client";
 import { DEFAULT_CURRENCY } from "~/config/currency";
+import { today } from "~/lib/helpers";
 import type { Category } from "~/types/expense";
 
 interface Props {
@@ -9,11 +10,6 @@ interface Props {
 }
 
 type ActionData = { category: Category } | { error: string };
-
-function today(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
 
 export function ExpenseForm({ uid }: Props) {
   const fetcher = useFetcher<ActionData>();

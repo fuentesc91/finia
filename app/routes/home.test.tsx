@@ -5,10 +5,10 @@ import { useAuth } from "~/context/auth";
 vi.mock("~/context/auth", () => ({ useAuth: vi.fn() }));
 vi.mock("~/lib/firebase.client", () => ({ auth: {} }));
 vi.mock("firebase/auth", () => ({ signOut: vi.fn() }));
-vi.mock("~/components/ExpenseForm", () => ({
+vi.mock("~/components/expenses/ExpenseForm", () => ({
   ExpenseForm: ({ uid }: { uid: string }) => <div data-testid="expense-form" data-uid={uid} />,
 }));
-vi.mock("~/components/ExpenseList", () => ({
+vi.mock("~/components/expenses/ExpenseList", () => ({
   ExpenseList: ({ uid }: { uid: string }) => <div data-testid="expense-list" data-uid={uid} />,
 }));
 vi.mock("~/components/budget/BudgetRibbon", () => ({

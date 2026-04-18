@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { subscribeToBudgets, deleteBudget } from "~/lib/firestore.budgets.client";
 import { subscribeToExpenses } from "~/lib/firestore.client";
 import { getPeriodWindow } from "~/lib/periods";
+import { periodDays } from "~/lib/helpers";
 import { BudgetProgressCard } from "~/components/budget/BudgetProgressCard";
 import { BudgetForm } from "~/components/budget/BudgetForm";
 import type { Budget } from "~/types/budget";
@@ -144,14 +145,6 @@ export function BudgetList({ uid }: Props) {
       )}
     </div>
   );
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function periodDays(type: string): number {
-  if (type === "weekly") return 7;
-  if (type === "biweekly") return 15;
-  return 30;
 }
 
 // ─── Icons ────────────────────────────────────────────────────────────────────

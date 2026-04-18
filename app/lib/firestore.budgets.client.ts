@@ -14,19 +14,7 @@ import { db } from "~/lib/firebase.client";
 import type { Budget, BudgetInput } from "~/types/budget";
 import { type BudgetPeriod, type BudgetPeriodType } from "~/types/budget";
 import { CATEGORIES, type Category } from "~/types/expense";
-
-function normalizeFirestoreError(err: unknown): Error {
-  if (err && typeof err === "object" && "code" in err) {
-    const code = (err as { code: string }).code;
-    const messages: Record<string, string> = {
-      "permission-denied": "No tienes permiso para realizar esta acción.",
-      "unavailable": "Servicio no disponible. Verifica tu conexión.",
-      "not-found": "No se encontró el documento.",
-    };
-    return new Error(messages[code] ?? "Error al acceder a los datos. Intenta de nuevo.");
-  }
-  return new Error("Error desconocido. Intenta de nuevo.");
-}
+import { normalizeFirestoreError } from "~/lib/helpers";
 
 const VALID_PERIOD_TYPES: BudgetPeriodType[] = ["weekly", "biweekly", "monthly"];
 

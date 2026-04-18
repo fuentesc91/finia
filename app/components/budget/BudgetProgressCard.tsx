@@ -2,6 +2,7 @@ import { formatAmount } from "~/config/currency";
 import type { Budget } from "~/types/budget";
 import type { Expense } from "~/types/expense";
 import { computeSpending, getPeriodWindow } from "~/lib/periods";
+import { daysBetween } from "~/lib/helpers";
 
 interface Props {
   budget: Budget;
@@ -126,14 +127,6 @@ export function BudgetProgressCard({ budget, expenses, referenceDate, onEdit, on
       )}
     </div>
   );
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function daysBetween(startIso: string, endIso: string): number {
-  const start = new Date(`${startIso}T12:00:00`);
-  const end = new Date(`${endIso}T12:00:00`);
-  return Math.max(0, Math.round((end.getTime() - start.getTime()) / 86_400_000));
 }
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
