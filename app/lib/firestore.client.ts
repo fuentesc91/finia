@@ -14,6 +14,7 @@ import {
   query,
   limit,
   startAfter,
+  where,
 } from "firebase/firestore";
 import { EXPENSES_PAGE_SIZE } from "~/lib/configs";
 
@@ -94,6 +95,25 @@ function mapExpenseDoc(d: { id: string; data: () => Record<string, unknown> }): 
     date: data.date as string,
     createdAt: (data.createdAt as { toDate?: () => Date } | null)?.toDate?.() ?? new Date(),
   };
+}
+
+export function subscribeToExpensesForPeriod(
+  uid: string,
+  startDate: string,
+  endDate: string,
+  callback: (expenses: Expense[]) => void,
+  onError?: (err: Error) => void
+): () => void {
+  return onSnapshot(
+    query(
+      expensesRef(uid),
+      where("date", ">=", startDate),
+      where("date", "<=", endDate),
+      orderBy("date", "desc")
+    ),
+    (snap) => callback(snap.docs.map(mapExpenseDoc)),
+    (err) => onError?.(normalizeFirestoreError(err))
+  );
 }
 
 export function subscribeToExpenses(

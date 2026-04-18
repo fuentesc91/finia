@@ -8,6 +8,9 @@ vi.mock("~/lib/firebase.client", () => ({ db: {}, auth: {} }));
 vi.mock("~/lib/firestore.budgets.client", () => ({
   subscribeToBudgets: vi.fn(),
 }));
+vi.mock("~/lib/firestore.client", () => ({
+  subscribeToExpensesForPeriod: vi.fn(() => vi.fn()),
+}));
 vi.mock("react-router", () => ({
   Link: ({ children, to, className }: { children: React.ReactNode; to: string; className?: string }) => (
     <a href={to} className={className}>{children}</a>
@@ -15,8 +18,10 @@ vi.mock("react-router", () => ({
 }));
 
 import { subscribeToBudgets } from "~/lib/firestore.budgets.client";
+import { subscribeToExpensesForPeriod } from "~/lib/firestore.client";
 
 const mockSubscribe = subscribeToBudgets as Mock;
+const mockSubscribeExpenses = subscribeToExpensesForPeriod as Mock;
 
 function makeBudget(overrides: Partial<Budget> = {}): Budget {
   return {
@@ -36,6 +41,12 @@ function makeExpense(date: string, amount: number, category: Expense["category"]
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockSubscribeExpenses.mockImplementation(
+    (_uid: string, _start: string, _end: string, cb: (e: Expense[]) => void) => {
+      cb([]);
+      return vi.fn();
+    }
+  );
 });
 
 describe("BudgetRibbon", () => {
@@ -44,7 +55,7 @@ describe("BudgetRibbon", () => {
       cb([]);
       return vi.fn();
     });
-    const { container } = render(<BudgetRibbon uid="uid1" expenses={[]} />);
+    const { container } = render(<BudgetRibbon uid="uid1" />);
     expect(container.firstChild).toBeNull();
   });
 
@@ -53,7 +64,7 @@ describe("BudgetRibbon", () => {
       cb([makeBudget({ id: "b1", category: "Alimentación" }), makeBudget({ id: "b2", category: "Transporte" })]);
       return vi.fn();
     });
-    render(<BudgetRibbon uid="uid1" expenses={[]} />);
+    render(<BudgetRibbon uid="uid1" />);
     expect(screen.getByText("Alimentación")).toBeInTheDocument();
     expect(screen.getByText("Transporte")).toBeInTheDocument();
   });
@@ -63,7 +74,7 @@ describe("BudgetRibbon", () => {
       cb([makeBudget({ category: null })]);
       return vi.fn();
     });
-    render(<BudgetRibbon uid="uid1" expenses={[]} />);
+    render(<BudgetRibbon uid="uid1" />);
     expect(screen.getByText("Global")).toBeInTheDocument();
   });
 
@@ -72,10 +83,14 @@ describe("BudgetRibbon", () => {
       cb([makeBudget({ amount: 1000 })]);
       return vi.fn();
     });
-    // Use expenses from the current month so they fall inside the monthly window
     const today = new Date().toISOString().slice(0, 10);
-    const expenses = [makeExpense(today, 300)];
-    render(<BudgetRibbon uid="uid1" expenses={expenses} />);
+    mockSubscribeExpenses.mockImplementation(
+      (_uid: string, _start: string, _end: string, cb: (e: Expense[]) => void) => {
+        cb([makeExpense(today, 300)]);
+        return vi.fn();
+      }
+    );
+    render(<BudgetRibbon uid="uid1" />);
     expect(screen.getByText(/restantes/)).toBeInTheDocument();
   });
 
@@ -85,8 +100,13 @@ describe("BudgetRibbon", () => {
       return vi.fn();
     });
     const today = new Date().toISOString().slice(0, 10);
-    const expenses = [makeExpense(today, 500)];
-    render(<BudgetRibbon uid="uid1" expenses={expenses} />);
+    mockSubscribeExpenses.mockImplementation(
+      (_uid: string, _start: string, _end: string, cb: (e: Expense[]) => void) => {
+        cb([makeExpense(today, 500)]);
+        return vi.fn();
+      }
+    );
+    render(<BudgetRibbon uid="uid1" />);
     expect(screen.getByText(/excedido/)).toBeInTheDocument();
   });
 
@@ -95,24 +115,28 @@ describe("BudgetRibbon", () => {
       cb([makeBudget()]);
       return vi.fn();
     });
-    render(<BudgetRibbon uid="uid1" expenses={[]} />);
+    render(<BudgetRibbon uid="uid1" />);
     const link = screen.getByRole("link");
     expect(link).toHaveAttribute("href", "/budgets");
   });
 
-  it("updates pills when expenses change", () => {
-    let capturedCallback: (b: Budget[]) => void;
+  it("updates pills when subscription delivers new expenses", () => {
     mockSubscribe.mockImplementation((_uid: string, cb: (b: Budget[]) => void) => {
-      capturedCallback = cb;
       cb([makeBudget({ amount: 1000 })]);
       return vi.fn();
     });
-
+    let capturedExpenseCb: (e: Expense[]) => void;
+    mockSubscribeExpenses.mockImplementation(
+      (_uid: string, _start: string, _end: string, cb: (e: Expense[]) => void) => {
+        capturedExpenseCb = cb;
+        cb([]);
+        return vi.fn();
+      }
+    );
     const today = new Date().toISOString().slice(0, 10);
-    const { rerender } = render(<BudgetRibbon uid="uid1" expenses={[]} />);
+    render(<BudgetRibbon uid="uid1" />);
     expect(screen.getByText(/restantes/)).toBeInTheDocument();
-
-    rerender(<BudgetRibbon uid="uid1" expenses={[makeExpense(today, 1200)]} />);
+    act(() => capturedExpenseCb([makeExpense(today, 1200)]));
     expect(screen.getByText(/excedido/)).toBeInTheDocument();
   });
 });

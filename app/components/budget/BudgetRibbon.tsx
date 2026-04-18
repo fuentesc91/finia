@@ -1,21 +1,27 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { subscribeToBudgets } from "~/lib/firestore.budgets.client";
-import { computeSpending, getPeriodWindow } from "~/lib/periods";
+import { subscribeToExpensesForPeriod } from "~/lib/firestore.client";
+import { computeSpending, getPeriodWindow, getMonthlyWindow } from "~/lib/periods";
 import { formatAmount } from "~/config/currency";
 import type { Budget } from "~/types/budget";
 import type { Expense } from "~/types/expense";
 
 interface Props {
   uid: string;
-  expenses: Expense[];
 }
 
-export function BudgetRibbon({ uid, expenses }: Props) {
+export function BudgetRibbon({ uid }: Props) {
   const [budgets, setBudgets] = useState<Budget[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
 
   useEffect(() => {
     return subscribeToBudgets(uid, setBudgets);
+  }, [uid]);
+
+  useEffect(() => {
+    const { start, end } = getMonthlyWindow(new Date());
+    return subscribeToExpensesForPeriod(uid, start, end, setExpenses);
   }, [uid]);
 
   if (budgets.length === 0) return null;

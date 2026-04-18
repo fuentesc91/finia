@@ -29,6 +29,8 @@ Before writing any UI code, read `DESIGN.md` and apply its guidelines: Wise Sans
 
 **Firebase config:** Loaded from `VITE_*` env vars in `.env`. The `.env` file is gitignored.
 
+**Fixed overlays must use `createPortal`** — Any `position: fixed` element rendered inside a component with `overflow: hidden` (e.g. `SwipeableRow`) will be visually clipped. Always render overlays and bottom sheets via `createPortal(content, document.body)`. `BottomSheet` already does this — do not bypass it.
+
 ## Testing
 
 Write unit tests for the most significant functionality and all error handling paths. Focus on:
@@ -54,6 +56,19 @@ npm test           # watch mode
 - Mock `~/lib/firestore.client` for any component that calls Firestore.
 - Mock `react-router`'s `useNavigate`, `useFetcher`, and `Link` to keep tests self-contained.
 - For `useFetcher`, use a mutable object (`fetcherState`) and call `rerender()` inside `act()` to simulate server action responses.
+- Mock `~/components/ui/SwipeableRow` and `~/components/ui/DataEditSheet` in component tests — render their `onTap`/`actions`/`onSave`/`open` props as clickable elements with `data-testid` attributes so behavior can be asserted without gesture or portal complexity.
+
+**Pointer gesture tests** — jsdom does not propagate `clientX`/`clientY` on pointer events, so swipe gesture detection cannot be unit-tested. Test tap behavior via `fireEvent.click` and keyboard behavior via `fireEvent.keyDown`. Swipe paths (open/close snap, threshold detection) require browser or e2e testing.
+
+## Generic UI components
+
+Before building any interaction UI (overlays, swipeable rows, edit sheets), check `app/components/ui/` for existing components:
+
+- **`SwipeableRow`** — wraps any list row with a left-swipe gesture that reveals action buttons. Use `confirmedLabel` on a destructive action for two-tap confirmation without a modal. Fires `onTap` on a normal tap.
+- **`BottomSheet`** — generic fixed overlay that slides up from the bottom. Handles scroll-lock, backdrop click, and Escape key. Always rendered via `createPortal` so it escapes any `overflow: hidden` ancestor.
+- **`DataEditSheet`** — wraps `BottomSheet` with a Save/Cancel footer and inline error display. Pass form fields as `children` and an async `onSave: () => Promise<void>` that throws on validation errors; the sheet catches and surfaces them.
+
+Do not reimplement these patterns inline. When adding edit/delete to any list, wrap rows with `SwipeableRow` and use `DataEditSheet` for the edit form.
 
 ## Helper functions
 
@@ -87,6 +102,10 @@ See `FINIA.md` for the full product spec. The core feature is expense registrati
 4. On success: client calls `saveExpense()` to write to Firestore, then prepends to local state
 5. On error: surface message to user, do NOT save
 
-**Firestore helpers** — `saveExpense` and `getExpenses` live in `app/lib/firestore.client.ts` alongside settings helpers. Follow the same `normalizeFirestoreError` pattern.
+**Firestore helpers** — `saveExpense`, `subscribeToExpenses`, and `subscribeToExpensesForPeriod` live in `app/lib/firestore.client.ts` alongside settings helpers. Follow the same `normalizeFirestoreError` pattern.
+
+**Two expense subscriptions — use the right one:**
+- `subscribeToExpenses(uid, cb, onError?, pageSize)` — paginated, ordered by `createdAt DESC`. Use only for the home screen expense list where recency matters and full history is not needed.
+- `subscribeToExpensesForPeriod(uid, startDate, endDate, cb, onError?)` — unbounded, filters by the `date` field range. Use for any budget calculation or progress display — never use the paginated version there, or expenses beyond the page limit will be silently excluded from totals. Pass the monthly window (`getMonthlyWindow(referenceDate)` from `~/lib/periods`) as the bounds — it is the widest period type and covers weekly and biweekly budgets too.
 
 **Currency** — amounts are stored as plain numbers. Display formatting lives in `app/config/currency.ts` via `formatAmount(amount, currency?)`. Default is `MXN`. When a currency setting is added to `users/{uid}/settings/main`, read it at runtime and pass it to `formatAmount` — the config file becomes the fallback. Never hardcode currency symbols elsewhere.

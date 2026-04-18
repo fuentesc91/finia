@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { subscribeToBudgets, deleteBudget } from "~/lib/firestore.budgets.client";
-import { subscribeToExpenses } from "~/lib/firestore.client";
-import { getPeriodWindow } from "~/lib/periods";
+import { subscribeToExpensesForPeriod } from "~/lib/firestore.client";
+import { getPeriodWindow, getMonthlyWindow } from "~/lib/periods";
 import { periodDays } from "~/lib/helpers";
 import { BudgetProgressCard } from "~/components/budget/BudgetProgressCard";
 import { BudgetForm } from "~/components/budget/BudgetForm";
@@ -22,13 +22,13 @@ export function BudgetList({ uid }: Props) {
   const [referenceDate, setReferenceDate] = useState(new Date());
 
   useEffect(() => {
-    const unsubBudgets = subscribeToBudgets(uid, setBudgets, (err) => setError(err.message));
-    const unsubExpenses = subscribeToExpenses(uid, setExpenses, (err) => setError(err.message));
-    return () => {
-      unsubBudgets();
-      unsubExpenses();
-    };
+    return subscribeToBudgets(uid, setBudgets, (err) => setError(err.message));
   }, [uid]);
+
+  useEffect(() => {
+    const { start, end } = getMonthlyWindow(referenceDate);
+    return subscribeToExpensesForPeriod(uid, start, end, setExpenses, (err) => setError(err.message));
+  }, [uid, referenceDate]);
 
   function navigatePeriod(budget: Budget, direction: -1 | 1) {
     // Move reference date by the period's approximate length

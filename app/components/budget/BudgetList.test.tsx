@@ -5,7 +5,7 @@ import type { Budget } from "~/types/budget";
 
 vi.mock("~/lib/firebase.client", () => ({ db: {}, auth: {} }));
 vi.mock("~/lib/firestore.client", () => ({
-  subscribeToExpenses: vi.fn(() => vi.fn()),
+  subscribeToExpensesForPeriod: vi.fn(() => vi.fn()),
 }));
 vi.mock("~/lib/firestore.budgets.client", () => ({
   subscribeToBudgets: vi.fn(() => vi.fn()),
@@ -18,10 +18,10 @@ vi.mock("react-router", () => ({
 }));
 
 import { subscribeToBudgets, deleteBudget } from "~/lib/firestore.budgets.client";
-import { subscribeToExpenses } from "~/lib/firestore.client";
+import { subscribeToExpensesForPeriod } from "~/lib/firestore.client";
 
 const mockSubscribeBudgets = subscribeToBudgets as Mock;
-const mockSubscribeExpenses = subscribeToExpenses as Mock;
+const mockSubscribeExpenses = subscribeToExpensesForPeriod as Mock;
 const mockDeleteBudget = deleteBudget as Mock;
 
 function makeBudget(overrides: Partial<Budget> = {}): Budget {
@@ -38,7 +38,7 @@ function makeBudget(overrides: Partial<Budget> = {}): Budget {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockSubscribeExpenses.mockImplementation((_uid: string, cb: (e: unknown[]) => void) => {
+  mockSubscribeExpenses.mockImplementation((_uid: string, _start: string, _end: string, cb: (e: unknown[]) => void) => {
     cb([]);
     return vi.fn();
   });
