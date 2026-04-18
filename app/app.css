@@ -26,6 +26,16 @@
   --color-wise-border-dark: rgba(240, 244, 237, 0.10);
 }
 
+.swipe-action-destructive {
+  background-color: #d03238;
+  color: #ffffff;
+}
+
+.dark .swipe-action-destructive {
+  background-color: #f2686d;
+  color: #0e0f0c;
+}
+
 html,
 body {
   @apply bg-white dark:bg-near-black;
