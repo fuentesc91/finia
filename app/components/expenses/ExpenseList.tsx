@@ -3,12 +3,15 @@ import { subscribeToExpenses, getExpensesPage } from "~/lib/firestore.client";
 import { formatAmount } from "~/config/currency";
 import { groupByMonth, monthLabel, formatDate } from "~/lib/helpers";
 import type { Expense } from "~/types/expense";
-
-const PAGE_SIZE = 30;
+import { EXPENSES_PAGE_SIZE } from "~/lib/configs";
 
 interface Props {
   uid: string;
-  onLoadMore?: (loadMore: () => Promise<void>, hasMore: boolean, loadingMore: boolean) => void;
+  onLoadMore?: (
+    loadMore: () => Promise<void>,
+    hasMore: boolean,
+    loadingMore: boolean,
+  ) => void;
 }
 
 export function ExpenseList({ uid, onLoadMore }: Props) {
@@ -25,11 +28,11 @@ export function ExpenseList({ uid, onLoadMore }: Props) {
       uid,
       (loaded) => {
         setLiveExpenses(loaded);
-        setHasMore(loaded.length === PAGE_SIZE);
+        setHasMore(loaded.length === EXPENSES_PAGE_SIZE);
         setLoading(false);
       },
       () => setLoading(false),
-      PAGE_SIZE,
+      EXPENSES_PAGE_SIZE,
     );
     return unsubscribe;
   }, [uid]);
@@ -45,11 +48,17 @@ export function ExpenseList({ uid, onLoadMore }: Props) {
     setLoadingMore(true);
     setLoadMoreError(null);
     try {
-      const { expenses, hasMore: more } = await getExpensesPage(uid, cursor, PAGE_SIZE);
+      const { expenses, hasMore: more } = await getExpensesPage(
+        uid,
+        cursor,
+        EXPENSES_PAGE_SIZE,
+      );
       setMoreExpenses((prev) => [...prev, ...expenses]);
       setHasMore(more);
     } catch (err) {
-      setLoadMoreError(err instanceof Error ? err.message : "Error al cargar más gastos");
+      setLoadMoreError(
+        err instanceof Error ? err.message : "Error al cargar más gastos",
+      );
     } finally {
       setLoadingMore(false);
     }
@@ -110,6 +119,22 @@ export function ExpenseList({ uid, onLoadMore }: Props) {
           </div>
         </section>
       ))}
+      {hasMore && (
+        <div className="relative flex flex-col items-stretch">
+          <button
+            onClick={loadMore}
+            disabled={loadingMore}
+            className="relative z-10 flex items-center justify-center gap-2 px-5 py-4 rounded-[30px] border border-wise-border dark:border-wise-border-dark bg-white dark:bg-surface-raised text-wise-gray dark:text-muted text-sm hover:text-near-black dark:hover:text-off-white disabled:opacity-40 disabled:cursor-not-allowed group transition-colors"
+          >
+            <span className="group-hover:translate-y-0.5 transition-transform duration-200">
+              ↓
+            </span>
+            <span>{loadingMore ? "Cargando..." : "Ver más gastos"}</span>
+          </button>
+          <div className="absolute inset-x-3 inset-y-0 rounded-[30px] border border-wise-border dark:border-wise-border-dark bg-white dark:bg-surface-raised translate-y-1.5 opacity-50" />
+          <div className="absolute inset-x-6 inset-y-0 rounded-[30px] border border-wise-border dark:border-wise-border-dark bg-white dark:bg-surface-raised translate-y-3 opacity-25" />
+        </div>
+      )}
       {loadMoreError && (
         <p className="text-center text-sm text-red-500 dark:text-red-400">
           {loadMoreError}

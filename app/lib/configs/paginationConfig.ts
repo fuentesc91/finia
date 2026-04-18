@@ -1,0 +1,1 @@
+export const EXPENSES_PAGE_SIZE = 10;
