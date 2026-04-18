@@ -18,9 +18,10 @@ vi.mock("firebase/firestore", () => ({
   query: vi.fn(),
   limit: vi.fn(),
   startAfter: vi.fn(),
+  where: vi.fn(),
 }));
 
-import { saveAnthropicKey, getAnthropicSettings, deleteAnthropicKey, saveExpense, updateExpense, deleteExpense, getExpensesPage, subscribeToExpenses } from "~/lib/firestore.client";
+import { saveAnthropicKey, getAnthropicSettings, deleteAnthropicKey, saveExpense, updateExpense, deleteExpense, getExpensesPage, subscribeToExpenses, subscribeToExpensesForPeriod } from "~/lib/firestore.client";
 import { doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, collection, getDocs, onSnapshot, query } from "firebase/firestore";
 
 const mockDoc = doc as Mock;
@@ -333,6 +334,51 @@ describe("subscribeToExpenses", () => {
     const unsubscribe = vi.fn();
     mockOnSnapshot.mockReturnValue(unsubscribe);
     const result = subscribeToExpenses("uid1", vi.fn());
+    expect(result).toBe(unsubscribe);
+  });
+});
+
+describe("subscribeToExpensesForPeriod", () => {
+  const fakeTimestamp = { toDate: () => new Date("2026-04-01T00:00:00Z") };
+
+  it("calls callback with expenses mapped from snapshot", () => {
+    mockOnSnapshot.mockImplementation((_q, successCb) => {
+      successCb({
+        docs: [
+          {
+            id: "e1",
+            data: () => ({
+              description: "Mercado", amount: 200, category: "Alimentación",
+              date: "2026-04-01", createdAt: fakeTimestamp,
+            }),
+          },
+        ],
+      });
+      return vi.fn();
+    });
+    const callback = vi.fn();
+    subscribeToExpensesForPeriod("uid1", "2026-04-01", "2026-04-30", callback);
+    expect(callback).toHaveBeenCalledOnce();
+    expect(callback.mock.calls[0][0]).toMatchObject([
+      { id: "e1", description: "Mercado", amount: 200, category: "Alimentación", date: "2026-04-01" },
+    ]);
+  });
+
+  it("calls onError with normalized error on Firestore failure", () => {
+    mockOnSnapshot.mockImplementation((_q, _successCb, errorCb) => {
+      errorCb({ code: "permission-denied" });
+      return vi.fn();
+    });
+    const onError = vi.fn();
+    subscribeToExpensesForPeriod("uid1", "2026-04-01", "2026-04-30", vi.fn(), onError);
+    expect(onError).toHaveBeenCalledOnce();
+    expect(onError.mock.calls[0][0].message).toBe("No tienes permiso para realizar esta acción.");
+  });
+
+  it("returns the unsubscribe function from onSnapshot", () => {
+    const unsubscribe = vi.fn();
+    mockOnSnapshot.mockReturnValue(unsubscribe);
+    const result = subscribeToExpensesForPeriod("uid1", "2026-04-01", "2026-04-30", vi.fn());
     expect(result).toBe(unsubscribe);
   });
 });

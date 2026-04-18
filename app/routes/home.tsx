@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 import { signOut } from "firebase/auth";
 import { auth } from "~/lib/firebase.client";
@@ -6,8 +6,6 @@ import { useAuth } from "~/context/auth";
 import { ExpenseForm } from "~/components/expenses/ExpenseForm";
 import { ExpenseList } from "~/components/expenses/ExpenseList";
 import { BudgetRibbon } from "~/components/budget/BudgetRibbon";
-import { subscribeToExpenses } from "~/lib/firestore.client";
-import type { Expense } from "~/types/expense";
 
 export function meta() {
   return [{ title: "Finia" }];
@@ -16,13 +14,6 @@ export function meta() {
 export default function Home() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-
-  useEffect(() => {
-    if (!user) return;
-    return subscribeToExpenses(user.uid, setExpenses);
-  }, [user]);
-
   useEffect(() => {
     if (!loading && !user) navigate("/login");
   }, [user, loading, navigate]);
@@ -73,7 +64,7 @@ export default function Home() {
           </span>
         </p>
         <ExpenseForm uid={user.uid} />
-        <BudgetRibbon uid={user.uid} expenses={expenses} />
+        <BudgetRibbon uid={user.uid} />
         <ExpenseList uid={user.uid} />
       </main>
     </div>
