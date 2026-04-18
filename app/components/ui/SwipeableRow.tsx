@@ -195,7 +195,7 @@ export function SwipeableRow({
           transform: "translateX(0)",
           transition: "transform 0.2s ease",
         }}
-        className="relative z-10 bg-inherit bg-white dark:bg-near-black"
+        className="relative z-10 bg-white dark:bg-near-black"
       >
         {children}
       </div>
