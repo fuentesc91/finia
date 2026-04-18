@@ -1,4 +1,12 @@
-import { describe, it, expect, vi, beforeEach, beforeAll, type Mock } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  beforeAll,
+  type Mock,
+} from "vitest";
 import { render, screen, waitFor, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { getAnthropicSettings, saveExpense } from "~/lib/firestore.client";
@@ -20,8 +28,18 @@ vi.mock("react-router", async (importActual) => {
   return {
     ...actual,
     useFetcher: () => fetcherState,
-    Link: ({ children, to, ...rest }: { children: React.ReactNode; to: string; [k: string]: unknown }) => (
-      <a href={to} {...rest}>{children}</a>
+    Link: ({
+      children,
+      to,
+      ...rest
+    }: {
+      children: React.ReactNode;
+      to: string;
+      [k: string]: unknown;
+    }) => (
+      <a href={to} {...rest}>
+        {children}
+      </a>
     ),
   };
 });
@@ -30,9 +48,9 @@ const mockGetAnthropicSettings = getAnthropicSettings as Mock;
 const mockSaveExpense = saveExpense as Mock;
 const CONNECTED = { apiKey: "sk-ant-x", hasCredits: true };
 
-let ExpenseForm: typeof import("~/components/ExpenseForm").ExpenseForm;
+let ExpenseForm: typeof import("~/components/expenses/ExpenseForm").ExpenseForm;
 beforeAll(async () => {
-  ({ ExpenseForm } = await import("~/components/ExpenseForm"));
+  ({ ExpenseForm } = await import("~/components/expenses/ExpenseForm"));
 });
 
 beforeEach(() => {
@@ -45,7 +63,9 @@ beforeEach(() => {
 
 async function waitForEnabled() {
   await waitFor(() =>
-    expect(screen.getByRole("button", { name: /registrar gasto/i })).not.toBeDisabled()
+    expect(
+      screen.getByRole("button", { name: /registrar gasto/i }),
+    ).not.toBeDisabled(),
   );
 }
 
@@ -67,7 +87,9 @@ describe("ExpenseForm — Claude connection", () => {
     mockGetAnthropicSettings.mockResolvedValue(null);
     render(<ExpenseForm uid="u1" />);
     await screen.findByText(/conecta claude/i);
-    expect(screen.getByRole("button", { name: /registrar gasto/i })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: /registrar gasto/i }),
+    ).toBeDisabled();
   });
 });
 
@@ -135,7 +157,11 @@ describe("ExpenseForm — submission", () => {
     await waitFor(() => expect(mockSaveExpense).toHaveBeenCalledOnce());
     const [uid, arg] = mockSaveExpense.mock.calls[0];
     expect(uid).toBe("u1");
-    expect(arg).toMatchObject({ description: "Almuerzo", amount: 150, category: "Alimentación" });
+    expect(arg).toMatchObject({
+      description: "Almuerzo",
+      amount: 150,
+      category: "Alimentación",
+    });
 
     // Form fields should be cleared
     await waitFor(() => {
@@ -153,7 +179,9 @@ describe("ExpenseForm — submission", () => {
 
     await act(async () => {
       fetcherState.state = "idle";
-      fetcherState.data = { error: "Límite de uso alcanzado. Intenta en unos minutos." };
+      fetcherState.data = {
+        error: "Límite de uso alcanzado. Intenta en unos minutos.",
+      };
       rerender(<ExpenseForm uid="u1" />);
     });
 

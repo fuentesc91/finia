@@ -14,9 +14,11 @@ vi.mock("firebase/firestore", () => ({
   onSnapshot: vi.fn(),
   orderBy: vi.fn(),
   query: vi.fn(),
+  limit: vi.fn(),
+  startAfter: vi.fn(),
 }));
 
-import { saveAnthropicKey, getAnthropicSettings, deleteAnthropicKey, saveExpense, getExpenses, subscribeToExpenses } from "~/lib/firestore.client";
+import { saveAnthropicKey, getAnthropicSettings, deleteAnthropicKey, saveExpense, getExpensesPage, subscribeToExpenses } from "~/lib/firestore.client";
 import { doc, getDoc, setDoc, updateDoc, addDoc, collection, getDocs, onSnapshot, query } from "firebase/firestore";
 
 const mockDoc = doc as Mock;
@@ -144,14 +146,17 @@ describe("saveExpense", () => {
   });
 });
 
-describe("getExpenses", () => {
-  it("returns an empty array when there are no documents", async () => {
+describe("getExpensesPage", () => {
+  const CURSOR = new Date("2026-03-29T10:00:00Z");
+
+  it("returns empty array and hasMore=false when there are no documents", async () => {
     mockGetDocs.mockResolvedValue({ docs: [] });
-    await expect(getExpenses("uid1")).resolves.toEqual([]);
+    const result = await getExpensesPage("uid1", CURSOR);
+    expect(result).toEqual({ expenses: [], hasMore: false });
   });
 
   it("maps Firestore docs to Expense objects correctly", async () => {
-    const fakeTimestamp = { toDate: () => new Date("2026-03-29T10:00:00Z") };
+    const fakeTimestamp = { toDate: () => new Date("2026-03-15T10:00:00Z") };
     mockGetDocs.mockResolvedValue({
       docs: [
         {
@@ -160,20 +165,20 @@ describe("getExpenses", () => {
             description: "Uber",
             amount: 85.5,
             category: "Transporte",
-            date: "2026-03-29",
+            date: "2026-03-15",
             createdAt: fakeTimestamp,
           }),
         },
       ],
     });
-    const result = await getExpenses("uid1");
-    expect(result).toHaveLength(1);
-    expect(result[0]).toMatchObject({
+    const result = await getExpensesPage("uid1", CURSOR);
+    expect(result.expenses).toHaveLength(1);
+    expect(result.expenses[0]).toMatchObject({
       id: "exp1",
       description: "Uber",
       amount: 85.5,
       category: "Transporte",
-      date: "2026-03-29",
+      date: "2026-03-15",
     });
   });
 
@@ -192,13 +197,25 @@ describe("getExpenses", () => {
         },
       ],
     });
-    const result = await getExpenses("uid1");
-    expect(result[0].category).toBe("Otros");
+    const result = await getExpensesPage("uid1", CURSOR);
+    expect(result.expenses[0].category).toBe("Otros");
+  });
+
+  it("sets hasMore=true when Firestore returns pageSize+1 docs", async () => {
+    const makeFakeDoc = (id: string) => ({
+      id,
+      data: () => ({ description: "X", amount: 10, category: "Otros", date: "2026-01-01", createdAt: null }),
+    });
+    // default pageSize is 30, so return 31 docs
+    mockGetDocs.mockResolvedValue({ docs: Array.from({ length: 31 }, (_, i) => makeFakeDoc(`e${i}`)) });
+    const result = await getExpensesPage("uid1", CURSOR);
+    expect(result.hasMore).toBe(true);
+    expect(result.expenses).toHaveLength(30);
   });
 
   it("throws a normalized Spanish error on unavailable", async () => {
     mockGetDocs.mockRejectedValue({ code: "unavailable" });
-    await expect(getExpenses("uid1")).rejects.toThrow(
+    await expect(getExpensesPage("uid1", CURSOR)).rejects.toThrow(
       "Servicio no disponible. Verifica tu conexión."
     );
   });
