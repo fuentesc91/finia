@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useFetcher } from "react-router";
 import { getAnthropicSettings, saveExpense } from "~/lib/firestore.client";
-import { DEFAULT_CURRENCY } from "~/config/currency";
+import { DEFAULT_CURRENCY } from "~/config";
 import { today } from "~/lib/helpers";
 import type { Category } from "~/types/expense";
 
@@ -20,7 +20,9 @@ export function ExpenseForm({ uid }: Props) {
   const [amount, setAmount] = useState("");
   const [localError, setLocalError] = useState("");
   const [actionError, setActionError] = useState("");
-  const pendingRef = useRef<{ description: string; amount: number } | null>(null);
+  const pendingRef = useRef<{ description: string; amount: number } | null>(
+    null,
+  );
 
   useEffect(() => {
     getAnthropicSettings(uid)
@@ -33,7 +35,8 @@ export function ExpenseForm({ uid }: Props) {
 
   // Handle action result
   useEffect(() => {
-    if (!fetcher.data || fetcher.state !== "idle" || !pendingRef.current) return;
+    if (!fetcher.data || fetcher.state !== "idle" || !pendingRef.current)
+      return;
 
     const data = fetcher.data;
     const pending = pendingRef.current;
@@ -99,7 +102,9 @@ export function ExpenseForm({ uid }: Props) {
           className="flex items-center gap-3 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 px-4 py-3 text-sm text-amber-700 dark:text-[#ffd11a] transition-colors hover:bg-amber-100 dark:hover:bg-amber-900/40"
         >
           <span>✦</span>
-          <span>Conecta Claude para categorizar tus gastos automáticamente.</span>
+          <span>
+            Conecta Claude para categorizar tus gastos automáticamente.
+          </span>
           <span className="ml-auto text-amber-500 dark:text-[#ffd11a]">→</span>
         </Link>
       )}

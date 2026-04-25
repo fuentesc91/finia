@@ -1,4 +1,4 @@
-import { formatAmount } from "~/config/currency";
+import { formatAmount } from "~/config";
 import type { Budget } from "~/types/budget";
 import type { Expense } from "~/types/expense";
 import { computeSpending, getPeriodWindow } from "~/lib/periods";
@@ -12,7 +12,13 @@ interface Props {
   onDelete: (budgetId: string) => void;
 }
 
-export function BudgetProgressCard({ budget, expenses, referenceDate, onEdit, onDelete }: Props) {
+export function BudgetProgressCard({
+  budget,
+  expenses,
+  referenceDate,
+  onEdit,
+  onDelete,
+}: Props) {
   const ref = referenceDate ?? new Date();
   const window = getPeriodWindow(budget.period, ref);
   const spent = computeSpending(expenses, budget, ref);
@@ -23,15 +29,20 @@ export function BudgetProgressCard({ budget, expenses, referenceDate, onEdit, on
 
   // Daily burn rate: days elapsed in the current window (at least 1 to avoid division by zero)
   const daysTotal = daysBetween(window.start, window.end) + 1;
-  const daysElapsed = Math.max(1, Math.min(daysBetween(window.start, ref.toISOString().slice(0, 10)) + 1, daysTotal));
+  const daysElapsed = Math.max(
+    1,
+    Math.min(
+      daysBetween(window.start, ref.toISOString().slice(0, 10)) + 1,
+      daysTotal,
+    ),
+  );
   const dailyBurn = spent / daysElapsed;
   const projectedTotal = dailyBurn * daysTotal;
 
   // Bar color
-  const barColor =
-    isOver
-      ? "bg-red-500 dark:bg-[#f2686d]"
-      : ratio >= 0.8
+  const barColor = isOver
+    ? "bg-red-500 dark:bg-[#f2686d]"
+    : ratio >= 0.8
       ? "bg-amber-500 dark:bg-[#ffd11a]"
       : "bg-wise-green dark:bg-wise-green";
 
@@ -41,7 +52,7 @@ export function BudgetProgressCard({ budget, expenses, referenceDate, onEdit, on
       (e) =>
         e.date >= window.start &&
         e.date <= window.end &&
-        (budget.category === null || e.category === budget.category)
+        (budget.category === null || e.category === budget.category),
     )
     .slice(0, 3);
 
@@ -53,7 +64,9 @@ export function BudgetProgressCard({ budget, expenses, referenceDate, onEdit, on
           <p className="font-semibold text-near-black dark:text-off-white">
             {budget.category ?? "Global"}
           </p>
-          <p className="text-xs text-wise-gray dark:text-muted mt-0.5">{window.label}</p>
+          <p className="text-xs text-wise-gray dark:text-muted mt-0.5">
+            {window.label}
+          </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <button
@@ -85,16 +98,24 @@ export function BudgetProgressCard({ budget, expenses, referenceDate, onEdit, on
         </div>
         <div className="flex items-baseline justify-between mt-1.5">
           <span className="text-xs text-wise-gray dark:text-muted">
-            {formatAmount(spent)} <span className="text-wise-border dark:text-wise-border-dark">/</span> {formatAmount(budget.amount)}
+            {formatAmount(spent)}{" "}
+            <span className="text-wise-border dark:text-wise-border-dark">
+              /
+            </span>{" "}
+            {formatAmount(budget.amount)}
           </span>
-          <span className={`text-xs font-semibold ${isOver ? "text-red-500 dark:text-[#f2686d]" : "text-wise-gray dark:text-muted"}`}>
+          <span
+            className={`text-xs font-semibold ${isOver ? "text-red-500 dark:text-[#f2686d]" : "text-wise-gray dark:text-muted"}`}
+          >
             {Math.round(ratio * 100)}%
           </span>
         </div>
       </div>
 
       {/* Remaining / exceeded */}
-      <p className={`text-sm font-semibold ${isOver ? "text-red-500 dark:text-[#f2686d]" : "text-[#054d28] dark:text-[#4caf7d]"}`}>
+      <p
+        className={`text-sm font-semibold ${isOver ? "text-red-500 dark:text-[#f2686d]" : "text-[#054d28] dark:text-[#4caf7d]"}`}
+      >
         {isOver
           ? `${formatAmount(Math.abs(remaining))} excedido`
           : `${formatAmount(remaining)} restantes`}
@@ -118,9 +139,16 @@ export function BudgetProgressCard({ budget, expenses, referenceDate, onEdit, on
       {windowExpenses.length > 0 && (
         <div className="border-t border-wise-border dark:border-wise-border-dark pt-3 space-y-1.5">
           {windowExpenses.map((e) => (
-            <div key={e.id} className="flex items-center justify-between text-xs">
-              <span className="text-near-black/70 dark:text-off-white/70 truncate max-w-[60%]">{e.description}</span>
-              <span className="text-wise-gray dark:text-muted shrink-0">{formatAmount(e.amount)}</span>
+            <div
+              key={e.id}
+              className="flex items-center justify-between text-xs"
+            >
+              <span className="text-near-black/70 dark:text-off-white/70 truncate max-w-[60%]">
+                {e.description}
+              </span>
+              <span className="text-wise-gray dark:text-muted shrink-0">
+                {formatAmount(e.amount)}
+              </span>
             </div>
           ))}
         </div>
@@ -133,7 +161,16 @@ export function BudgetProgressCard({ budget, expenses, referenceDate, onEdit, on
 
 function EditIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
       <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
     </svg>
@@ -142,7 +179,16 @@ function EditIcon() {
 
 function TrashIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <polyline points="3 6 5 6 21 6" />
       <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
       <path d="M10 11v6M14 11v6" />

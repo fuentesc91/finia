@@ -16,7 +16,7 @@ import {
   startAfter,
   where,
 } from "firebase/firestore";
-import { EXPENSES_PAGE_SIZE } from "~/lib/configs";
+import { EXPENSES_PAGE_SIZE } from "~/config";
 
 import { db } from "~/lib/firebase.client";
 import { CATEGORIES, type Category, type Expense } from "~/types/expense";

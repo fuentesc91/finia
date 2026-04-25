@@ -42,17 +42,18 @@ app/
 
 Firestore path: `users/{uid}/budgets/{budgetId}`
 
-| Field       | Type                                    | Notes                                      |
-|-------------|----------------------------------------|--------------------------------------------|
-| `period`    | `{ type: "weekly" \| "biweekly" \| "monthly" }` | Object, not a plain string        |
-| `category`  | `string \| null`                        | Matches the `Category` enum; `null` = global |
-| `amount`    | `number`                               | Currency-agnostic positive number           |
-| `createdAt` | Firestore `Timestamp`                  | Set once on creation                        |
-| `updatedAt` | Firestore `Timestamp`                  | Refreshed on every update                   |
+| Field       | Type                                            | Notes                                        |
+| ----------- | ----------------------------------------------- | -------------------------------------------- |
+| `period`    | `{ type: "weekly" \| "biweekly" \| "monthly" }` | Object, not a plain string                   |
+| `category`  | `string \| null`                                | Matches the `Category` enum; `null` = global |
+| `amount`    | `number`                                        | Currency-agnostic positive number            |
+| `createdAt` | Firestore `Timestamp`                           | Set once on creation                         |
+| `updatedAt` | Firestore `Timestamp`                           | Refreshed on every update                    |
 
 **TypeScript types live exclusively in `app/types/budget.ts`.** Never inline budget type definitions elsewhere.
 
 ### Rules for `category`
+
 - A value from the `CATEGORIES` list means the budget applies to one category.
 - `null` means the budget is global — it tracks total spending across all categories within the period.
 - The UI maps the `null` case to the string `"global"` only inside form state; convert back to `null` before writing to Firestore.
@@ -68,17 +69,18 @@ Each period type is implemented as a `PeriodStrategy` registered in `PERIOD_REGI
 ```ts
 export interface PeriodStrategy {
   getWindow(referenceDate: Date): PeriodWindow;
-  label: string;  // Spanish display label
+  label: string; // Spanish display label
 }
 
 export const PERIOD_REGISTRY: Record<BudgetPeriodType, PeriodStrategy> = {
-  weekly:    { getWindow: getWeeklyWindow,    label: "Semanal" },
-  biweekly:  { getWindow: getBiweeklyWindow,  label: "Quincenal" },
-  monthly:   { getWindow: getMonthlyWindow,   label: "Mensual" },
+  weekly: { getWindow: getWeeklyWindow, label: "Semanal" },
+  biweekly: { getWindow: getBiweeklyWindow, label: "Quincenal" },
+  monthly: { getWindow: getMonthlyWindow, label: "Mensual" },
 };
 ```
 
 **Adding a new period type:**
+
 1. Add the string literal to `BudgetPeriodType` in `app/types/budget.ts`.
 2. Implement a `getWindow` function that returns `{ start, end, label }` (ISO strings, inclusive).
 3. Register it in `PERIOD_REGISTRY`.
@@ -87,11 +89,11 @@ export const PERIOD_REGISTRY: Record<BudgetPeriodType, PeriodStrategy> = {
 
 ### Key Pure Functions
 
-| Function | Signature | Purpose |
-|---|---|---|
-| `getPeriodWindow` | `(period, date?) => PeriodWindow` | Returns start/end/label for the window containing `date` |
-| `isDateInWindow` | `(dateStr, window) => boolean` | Checks if an ISO date falls inside a window |
-| `computeSpending` | `(expenses, budget, date?) => number` | Sums matching expenses within the period window |
+| Function          | Signature                             | Purpose                                                  |
+| ----------------- | ------------------------------------- | -------------------------------------------------------- |
+| `getPeriodWindow` | `(period, date?) => PeriodWindow`     | Returns start/end/label for the window containing `date` |
+| `isDateInWindow`  | `(dateStr, window) => boolean`        | Checks if an ISO date falls inside a window              |
+| `computeSpending` | `(expenses, budget, date?) => number` | Sums matching expenses within the period window          |
 
 All three are pure functions with no side effects. Compute spending here — never inside components.
 
@@ -101,13 +103,13 @@ All three are pure functions with no side effects. Compute spending here — nev
 
 ### Public API
 
-| Function | Signature | Notes |
-|---|---|---|
-| `saveBudget` | `(uid, input) => Promise<string>` | Returns new document ID |
-| `updateBudget` | `(uid, id, input) => Promise<void>` | Partial update, refreshes `updatedAt` |
-| `deleteBudget` | `(uid, id) => Promise<void>` | Idempotent — succeeds if doc not found |
-| `getBudgets` | `(uid) => Promise<Budget[]>` | One-time read, ordered by `createdAt asc` |
-| `subscribeToBudgets` | `(uid, callback, onError?) => () => void` | Real-time listener; returns unsubscribe |
+| Function             | Signature                                 | Notes                                     |
+| -------------------- | ----------------------------------------- | ----------------------------------------- |
+| `saveBudget`         | `(uid, input) => Promise<string>`         | Returns new document ID                   |
+| `updateBudget`       | `(uid, id, input) => Promise<void>`       | Partial update, refreshes `updatedAt`     |
+| `deleteBudget`       | `(uid, id) => Promise<void>`              | Idempotent — succeeds if doc not found    |
+| `getBudgets`         | `(uid) => Promise<Budget[]>`              | One-time read, ordered by `createdAt asc` |
+| `subscribeToBudgets` | `(uid, callback, onError?) => () => void` | Real-time listener; returns unsubscribe   |
 
 ### Error Handling
 
@@ -123,6 +125,7 @@ All functions use `normalizeFirestoreError` to map Firestore error codes to user
 ### Document Deserialization
 
 `mapDocToBudget` converts raw Firestore data to a typed `Budget`. It must:
+
 - Validate `period.type` against known values; fall back to `"monthly"` if unknown.
 - Validate `category` against `CATEGORIES`; fall back to `null` if unknown.
 - Convert Firestore `Timestamp` → JavaScript `Date`.
@@ -135,18 +138,19 @@ Any new fields added to `Budget` must also be handled in `mapDocToBudget` with a
 
 ### Responsibility Matrix
 
-| Component | Owns State | Firestore Access | Purpose |
-|---|---|---|---|
-| `BudgetList` | Yes | Yes (via lib) | Orchestrator: subscriptions, CRUD dispatch, navigation |
-| `BudgetForm` | Local only | Yes (save/update) | Controlled form for create and edit modes |
-| `BudgetProgressCard` | No | No | Presentational: renders stats for one budget |
-| `BudgetRibbon` | Minimal | Yes (subscribe) | Summary pills embedded on the home page |
+| Component            | Owns State | Firestore Access  | Purpose                                                |
+| -------------------- | ---------- | ----------------- | ------------------------------------------------------ |
+| `BudgetList`         | Yes        | Yes (via lib)     | Orchestrator: subscriptions, CRUD dispatch, navigation |
+| `BudgetForm`         | Local only | Yes (save/update) | Controlled form for create and edit modes              |
+| `BudgetProgressCard` | No         | No                | Presentational: renders stats for one budget           |
+| `BudgetRibbon`       | Minimal    | Yes (subscribe)   | Summary pills embedded on the home page                |
 
 **Rule:** `BudgetProgressCard` is purely presentational — it receives data via props, does not call Firestore, and does not subscribe to anything. Keep it that way.
 
 ### `BudgetList` — Orchestrator Pattern
 
 `BudgetList` is the single source of truth for the budgets page. It:
+
 - Subscribes to `subscribeToBudgets` and `subscribeToExpenses` in `useEffect` hooks (each returns an unsubscribe function that must be called on cleanup).
 - Owns `editingBudget`, `showForm`, `referenceDate`, and `deletingId` state.
 - Passes callbacks down to `BudgetForm` (`onSaved`, `onCancel`) and `BudgetProgressCard` (`onEdit`, `onDelete`).
@@ -157,6 +161,7 @@ Any new fields added to `Budget` must also be handled in `mapDocToBudget` with a
 ### `BudgetForm` — Dual-Mode Form
 
 `BudgetForm` operates in two modes controlled by the `existing` prop:
+
 - `existing` is undefined → create mode (`saveBudget`)
 - `existing` is a `Budget` → edit mode (`updateBudget`)
 
@@ -165,6 +170,7 @@ All field defaults initialize from `existing` when provided. The form never rece
 ### `BudgetRibbon` — Home Page Integration
 
 `BudgetRibbon` is a secondary entry point rendered in `home.tsx`, below the expense form and above the expense list. It:
+
 - Returns `null` when no budgets exist (renders nothing, no empty state).
 - Subscribes to budgets in its own `useEffect`.
 - Shows one pill per budget linking to `/budgets`.
@@ -176,11 +182,11 @@ All field defaults initialize from `existing` when provided. The form never rece
 
 The same thresholds must be used consistently across `BudgetProgressCard` and `BudgetRibbon`:
 
-| Condition | Color |
-|---|---|
-| `spent > amount` | Red (`bg-red-500`) |
-| `spent / amount >= 0.90` (ribbon) or `0.80` (card) | Amber (`bg-amber-400`) |
-| Below threshold | Indigo (`bg-indigo-500`) |
+| Condition                                          | Color                    |
+| -------------------------------------------------- | ------------------------ |
+| `spent > amount`                                   | Red (`bg-red-500`)       |
+| `spent / amount >= 0.90` (ribbon) or `0.80` (card) | Amber (`bg-amber-400`)   |
+| Below threshold                                    | Indigo (`bg-indigo-500`) |
 
 If thresholds are changed, update both components and their tests together.
 
@@ -211,10 +217,10 @@ If thresholds are changed, update both components and their tests together.
 
 ## Currency Formatting
 
-All displayed amounts must use `formatAmount()` from `~/config/currency`. Never format currency with hardcoded symbols or `toFixed()` in component JSX.
+All displayed amounts must use `formatAmount()` from `~/config`. Never format currency with hardcoded symbols or `toFixed()` in component JSX.
 
 ```ts
-import { formatAmount } from "~/config/currency";
+import { formatAmount } from "~/config";
 // ...
 <span>{formatAmount(spent)}</span>
 ```
@@ -236,15 +242,15 @@ import { formatAmount } from "~/config/currency";
 
 ### Coverage Targets per File
 
-| File | Required test coverage |
-|---|---|
-| `periods.ts` | All three period types, boundary days (1st, 15th, last), month transitions, leap years |
-| `firestore.budgets.client.ts` | All CRUD functions, all error code mappings, `mapDocToBudget` fallbacks |
-| `BudgetForm.tsx` | Create mode submission, edit mode pre-population, validation (empty amount), cancel |
-| `BudgetProgressCard.tsx` | Over budget, at-threshold, under threshold; global vs. category filtering; stats display |
-| `BudgetList.tsx` | Subscription lifecycle, period navigation, inline form toggle, delete feedback |
-| `BudgetRibbon.tsx` | Returns null with no budgets; pill count and colors; link targets |
-| `budgets.tsx` | Auth redirect when unauthenticated; renders `BudgetList` when authenticated |
+| File                          | Required test coverage                                                                   |
+| ----------------------------- | ---------------------------------------------------------------------------------------- |
+| `periods.ts`                  | All three period types, boundary days (1st, 15th, last), month transitions, leap years   |
+| `firestore.budgets.client.ts` | All CRUD functions, all error code mappings, `mapDocToBudget` fallbacks                  |
+| `BudgetForm.tsx`              | Create mode submission, edit mode pre-population, validation (empty amount), cancel      |
+| `BudgetProgressCard.tsx`      | Over budget, at-threshold, under threshold; global vs. category filtering; stats display |
+| `BudgetList.tsx`              | Subscription lifecycle, period navigation, inline form toggle, delete feedback           |
+| `BudgetRibbon.tsx`            | Returns null with no budgets; pill count and colors; link targets                        |
+| `budgets.tsx`                 | Auth redirect when unauthenticated; renders `BudgetList` when authenticated              |
 
 ### Mocking Rules (extend from global rules in `CLAUDE.md`)
 

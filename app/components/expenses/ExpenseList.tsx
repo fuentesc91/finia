@@ -5,11 +5,11 @@ import {
   updateExpense,
   deleteExpense,
 } from "~/lib/firestore.client";
-import { formatAmount } from "~/config/currency";
+import { formatAmount } from "~/config";
 import { groupByMonth, monthLabel, formatDate, today } from "~/lib/helpers";
 import type { Expense } from "~/types/expense";
 import { CATEGORIES, type Category } from "~/types/expense";
-import { EXPENSES_PAGE_SIZE } from "~/lib/configs";
+import { EXPENSES_PAGE_SIZE } from "~/config";
 import { SwipeableRow } from "~/components/ui/SwipeableRow";
 import { DataEditSheet } from "~/components/ui/DataEditSheet";
 
@@ -32,7 +32,8 @@ interface EditFormState {
 const INPUT_CLASS =
   "w-full rounded-xl border border-wise-border dark:border-wise-border-dark bg-white dark:bg-surface-overlay text-near-black dark:text-off-white px-4 py-3 text-sm outline-none focus:border-wise-green dark:focus:border-wise-green focus:ring-2 focus:ring-[rgba(159,232,112,0.2)] transition-all";
 
-const LABEL_CLASS = "block text-sm font-semibold text-near-black dark:text-off-white mb-1.5";
+const LABEL_CLASS =
+  "block text-sm font-semibold text-near-black dark:text-off-white mb-1.5";
 
 export function ExpenseList({ uid, onLoadMore }: Props) {
   const [liveExpenses, setLiveExpenses] = useState<Expense[]>([]);
@@ -116,11 +117,17 @@ export function ExpenseList({ uid, onLoadMore }: Props) {
     if (!description) throw new Error("La descripción no puede estar vacía.");
 
     const amount = parseFloat(editForm.amount);
-    if (isNaN(amount) || amount <= 0) throw new Error("Ingresa un monto válido mayor a 0.");
+    if (isNaN(amount) || amount <= 0)
+      throw new Error("Ingresa un monto válido mayor a 0.");
 
     if (!editForm.date) throw new Error("Selecciona una fecha.");
 
-    const updates = { description, amount, category: editForm.category, date: editForm.date };
+    const updates = {
+      description,
+      amount,
+      category: editForm.category,
+      date: editForm.date,
+    };
     await updateExpense(uid, editingExpense!.id, updates);
     setMoreExpenses((prev) =>
       prev.map((e) => (e.id === editingExpense!.id ? { ...e, ...updates } : e)),
@@ -134,7 +141,9 @@ export function ExpenseList({ uid, onLoadMore }: Props) {
       await deleteExpense(uid, expense.id);
       setMoreExpenses((prev) => prev.filter((e) => e.id !== expense.id));
     } catch (err) {
-      setDeleteError(err instanceof Error ? err.message : "Error al eliminar gasto");
+      setDeleteError(
+        err instanceof Error ? err.message : "Error al eliminar gasto",
+      );
     } finally {
       setDeletingId(null);
     }
@@ -290,7 +299,10 @@ export function ExpenseList({ uid, onLoadMore }: Props) {
             id="edit-category"
             value={editForm.category}
             onChange={(e) =>
-              setEditForm((prev) => ({ ...prev, category: e.target.value as Category }))
+              setEditForm((prev) => ({
+                ...prev,
+                category: e.target.value as Category,
+              }))
             }
             className={INPUT_CLASS}
           >
