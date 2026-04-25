@@ -1,4 +1,4 @@
-import { formatAmount } from "~/config";
+import { formatAmount } from "~/lib/helpers";
 import type { Budget } from "~/types/budget";
 import type { Expense } from "~/types/expense";
 import { computeSpending, getPeriodWindow } from "~/lib/periods";

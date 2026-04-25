@@ -7,7 +7,7 @@ import {
   getPeriodWindow,
   getMonthlyWindow,
 } from "~/lib/periods";
-import { formatAmount } from "~/config";
+import { formatAmount } from "~/lib/helpers";
 import type { Budget } from "~/types/budget";
 import type { Expense } from "~/types/expense";
 
