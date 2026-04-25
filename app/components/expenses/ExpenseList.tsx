@@ -5,12 +5,17 @@ import {
   updateExpense,
   deleteExpense,
 } from "~/lib/firestore.client";
-import { formatAmount } from "~/config";
-import { groupByMonth, monthLabel, formatDate, today } from "~/lib/helpers";
+import { formatAmount } from "~/lib/helpers";
+import {
+  groupByMonth,
+  monthLabel,
+  today,
+  getMonthExpandedMap,
+} from "~/lib/helpers";
 import type { Expense } from "~/types/expense";
 import { CATEGORIES, type Category } from "~/types/expense";
-import { EXPENSES_PAGE_SIZE } from "~/config";
-import { SwipeableRow } from "~/components/ui/SwipeableRow";
+import { EXPENSES_PAGE_SIZE, EXPENSES_MONTH_ELEMENTS_SLICE } from "~/config";
+import { ExpenseElement } from "./ExpenseElement";
 import { DataEditSheet } from "~/components/ui/DataEditSheet";
 
 interface Props {
@@ -27,6 +32,10 @@ interface EditFormState {
   amount: string;
   category: Category;
   date: string;
+}
+
+interface MonthExpandedMap {
+  [month: string]: boolean;
 }
 
 const INPUT_CLASS =
@@ -52,6 +61,7 @@ export function ExpenseList({ uid, onLoadMore }: Props) {
   });
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isMonthExpanded, setIsMonthExpanded] = useState<MonthExpandedMap>({});
 
   useEffect(() => {
     setMoreExpenses([]);
@@ -149,6 +159,18 @@ export function ExpenseList({ uid, onLoadMore }: Props) {
     }
   }
 
+  const grouped = useMemo(() => groupByMonth(allExpenses), [allExpenses]);
+
+  const monthExpandedMap = useMemo(() => {
+    const defaults = getMonthExpandedMap(grouped);
+    return Object.fromEntries(
+      Object.keys(defaults).map((month) => [
+        month,
+        isMonthExpanded[month] ?? defaults[month],
+      ]),
+    );
+  }, [grouped, isMonthExpanded]);
+
   if (loading) return null;
 
   if (allExpenses.length === 0) {
@@ -158,8 +180,6 @@ export function ExpenseList({ uid, onLoadMore }: Props) {
       </p>
     );
   }
-
-  const grouped = groupByMonth(allExpenses);
 
   return (
     <div className="space-y-6">
@@ -176,43 +196,51 @@ export function ExpenseList({ uid, onLoadMore }: Props) {
             </span>
           </div>
           <div className="overflow-hidden bg-white dark:bg-surface-raised rounded-[30px] border border-wise-border dark:border-wise-border-dark divide-y divide-wise-border dark:divide-wise-border-dark">
-            {monthExpenses.map((expense) => (
-              <SwipeableRow
+            {monthExpenses.slice(0, EXPENSES_MONTH_ELEMENTS_SLICE).map((expense) => (
+              <ExpenseElement
                 key={expense.id}
-                disabled={deletingId === expense.id}
-                onTap={() => openEdit(expense)}
-                actions={[
-                  {
-                    label: "Eliminar",
-                    confirmedLabel: "¿Confirmar?",
-                    onAction: () => handleDelete(expense),
-                    variant: "destructive",
-                    widthPx: 90,
-                  },
-                ]}
-              >
-                <div
-                  className={`flex items-center gap-3 px-5 py-4 transition-opacity ${
-                    deletingId === expense.id ? "opacity-50" : ""
-                  }`}
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-near-black dark:text-off-white truncate">
-                      {expense.description}
-                    </p>
-                    <p className="text-xs text-wise-gray dark:text-muted mt-0.5">
-                      {formatDate(expense.date)}
-                    </p>
-                  </div>
-                  <span className="shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full bg-wise-mint dark:bg-[rgba(159,232,112,0.08)] text-dark-green dark:text-wise-green">
-                    {expense.category}
-                  </span>
-                  <span className="shrink-0 text-sm font-semibold text-near-black dark:text-off-white">
-                    {formatAmount(expense.amount)}
-                  </span>
-                </div>
-              </SwipeableRow>
+                expense={expense}
+                onEdit={openEdit}
+                onDelete={handleDelete}
+                deletingId={deletingId}
+              />
             ))}
+            {monthExpenses.length > EXPENSES_MONTH_ELEMENTS_SLICE && (
+              <>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateRows: monthExpandedMap[month] ? "1fr" : "0fr",
+                    transition: "grid-template-rows 0.3s ease",
+                  }}
+                >
+                  <div className="overflow-hidden divide-y divide-wise-border dark:divide-wise-border-dark">
+                    {monthExpenses.slice(EXPENSES_MONTH_ELEMENTS_SLICE).map((expense) => (
+                      <ExpenseElement
+                        key={expense.id}
+                        expense={expense}
+                        onEdit={openEdit}
+                        onDelete={handleDelete}
+                        deletingId={deletingId}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <button
+                  onClick={() =>
+                    setIsMonthExpanded((prev) => ({
+                      ...prev,
+                      [month]: !monthExpandedMap[month],
+                    }))
+                  }
+                  className="w-full px-4 py-3 text-sm font-semibold text-wise-gray dark:text-muted hover:text-near-black dark:hover:text-off-white transition-colors text-center"
+                >
+                  {monthExpandedMap[month]
+                    ? "Ver menos"
+                    : `Ver los ${monthExpenses.length - EXPENSES_MONTH_ELEMENTS_SLICE} restantes`}
+                </button>
+              </>
+            )}
           </div>
         </section>
       ))}

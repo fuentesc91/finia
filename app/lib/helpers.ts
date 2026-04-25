@@ -1,5 +1,6 @@
 import type { Expense } from "~/types/expense";
 import type { BudgetPeriodType } from "~/types/budget";
+import { DEFAULT_CURRENCY } from "~/config";
 
 export function today(): string {
   const d = new Date();
@@ -33,7 +34,10 @@ export function formatDate(isoDate: string): string {
 export function daysBetween(startIso: string, endIso: string): number {
   const start = new Date(`${startIso}T12:00:00`);
   const end = new Date(`${endIso}T12:00:00`);
-  return Math.max(0, Math.round((end.getTime() - start.getTime()) / 86_400_000));
+  return Math.max(
+    0,
+    Math.round((end.getTime() - start.getTime()) / 86_400_000),
+  );
 }
 
 export function periodDays(type: BudgetPeriodType): number {
@@ -47,10 +51,29 @@ export function normalizeFirestoreError(err: unknown): Error {
     const code = (err as { code: string }).code;
     const messages: Record<string, string> = {
       "permission-denied": "No tienes permiso para realizar esta acción.",
-      "unavailable": "Servicio no disponible. Verifica tu conexión.",
+      unavailable: "Servicio no disponible. Verifica tu conexión.",
       "not-found": "No se encontró el documento.",
     };
-    return new Error(messages[code] ?? "Error al acceder a los datos. Intenta de nuevo.");
+    return new Error(
+      messages[code] ?? "Error al acceder a los datos. Intenta de nuevo.",
+    );
   }
   return new Error("Error desconocido. Intenta de nuevo.");
+}
+
+export function formatAmount(
+  amount: number,
+  currency: string = DEFAULT_CURRENCY,
+): string {
+  return new Intl.NumberFormat("es-MX", { style: "currency", currency }).format(
+    amount,
+  );
+}
+
+export function getMonthExpandedMap(grouped: [string, Expense[]][]) {
+  const monthExpandedMap: Record<string, boolean> = {};
+  grouped.forEach(([month]) => {
+    monthExpandedMap[month] = false;
+  });
+  return monthExpandedMap;
 }
