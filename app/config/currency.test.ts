@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { DEFAULT_CURRENCY, formatAmount } from "~/config/currency";
+import { DEFAULT_CURRENCY, formatAmount } from "~/config";
 
 describe("DEFAULT_CURRENCY", () => {
   it("is MXN", () => {

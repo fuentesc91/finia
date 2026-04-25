@@ -8,9 +8,14 @@ import {
   type Mock,
 } from "vitest";
 import { render, screen, act, fireEvent } from "@testing-library/react";
-import { subscribeToExpenses, getExpensesPage, deleteExpense, updateExpense } from "~/lib/firestore.client";
+import {
+  subscribeToExpenses,
+  getExpensesPage,
+  deleteExpense,
+  updateExpense,
+} from "~/lib/firestore.client";
 import type { Expense } from "~/types/expense";
-import { EXPENSES_PAGE_SIZE } from "~/lib/configs";
+import { EXPENSES_PAGE_SIZE } from "~/config";
 
 vi.mock("~/lib/firebase.client", () => ({ db: {} }));
 vi.mock("~/lib/firestore.client", () => ({
@@ -20,7 +25,12 @@ vi.mock("~/lib/firestore.client", () => ({
   updateExpense: vi.fn(),
 }));
 vi.mock("~/components/ui/SwipeableRow", () => ({
-  SwipeableRow: ({ children, onTap, actions, disabled }: {
+  SwipeableRow: ({
+    children,
+    onTap,
+    actions,
+    disabled,
+  }: {
     children: React.ReactNode;
     onTap?: () => void;
     actions: Array<{ label: string; onAction: () => void }>;
@@ -45,7 +55,13 @@ vi.mock("~/components/ui/SwipeableRow", () => ({
   ),
 }));
 vi.mock("~/components/ui/DataEditSheet", () => ({
-  DataEditSheet: ({ open, onClose, title, onSave, children }: {
+  DataEditSheet: ({
+    open,
+    onClose,
+    title,
+    onSave,
+    children,
+  }: {
     open: boolean;
     onClose: () => void;
     title?: string;
@@ -56,8 +72,12 @@ vi.mock("~/components/ui/DataEditSheet", () => ({
       <div data-testid="data-edit-sheet">
         {title && <span data-testid="sheet-title">{title}</span>}
         {children}
-        <button data-testid="sheet-save" onClick={() => onSave()}>Guardar</button>
-        <button data-testid="sheet-cancel" onClick={onClose}>Cancelar</button>
+        <button data-testid="sheet-save" onClick={() => onSave()}>
+          Guardar
+        </button>
+        <button data-testid="sheet-cancel" onClick={onClose}>
+          Cancelar
+        </button>
       </div>
     ) : null,
 }));
@@ -309,7 +329,9 @@ describe("ExpenseList", () => {
       fireEvent.click(screen.getAllByTestId("row-content")[0]);
 
       expect(screen.getByTestId("data-edit-sheet")).toBeInTheDocument();
-      expect(screen.getByTestId("sheet-title")).toHaveTextContent("Editar gasto");
+      expect(screen.getByTestId("sheet-title")).toHaveTextContent(
+        "Editar gasto",
+      );
     });
 
     it("DataEditSheet is closed when editingExpense is null initially", () => {
@@ -344,15 +366,24 @@ describe("ExpenseList", () => {
 
     it("row is disabled while delete is in-flight", async () => {
       let resolveDelete!: () => void;
-      mockDelete.mockReturnValue(new Promise<void>((r) => { resolveDelete = r; }));
+      mockDelete.mockReturnValue(
+        new Promise<void>((r) => {
+          resolveDelete = r;
+        }),
+      );
       fakeSubscribe([UBER]);
       render(<ExpenseList uid="u1" />);
 
       fireEvent.click(screen.getAllByTestId("action-0")[0]);
 
-      expect(screen.getAllByTestId("row-content")[0]).toHaveAttribute("data-disabled", "true");
+      expect(screen.getAllByTestId("row-content")[0]).toHaveAttribute(
+        "data-disabled",
+        "true",
+      );
 
-      await act(async () => { resolveDelete(); });
+      await act(async () => {
+        resolveDelete();
+      });
     });
 
     it("edit sheet pre-fills description field from expense", () => {
@@ -361,7 +392,9 @@ describe("ExpenseList", () => {
 
       fireEvent.click(screen.getAllByTestId("row-content")[0]);
 
-      const descInput = screen.getByLabelText(/descripción/i) as HTMLInputElement;
+      const descInput = screen.getByLabelText(
+        /descripción/i,
+      ) as HTMLInputElement;
       expect(descInput.value).toBe(UBER.description);
     });
 
@@ -379,7 +412,10 @@ describe("ExpenseList", () => {
       expect(mockUpdate).toHaveBeenCalledWith(
         "u1",
         UBER.id,
-        expect.objectContaining({ description: UBER.description, amount: UBER.amount }),
+        expect.objectContaining({
+          description: UBER.description,
+          amount: UBER.amount,
+        }),
       );
     });
 

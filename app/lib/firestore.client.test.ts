@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
-import { EXPENSES_PAGE_SIZE } from "./configs";
+import { EXPENSES_PAGE_SIZE } from "../config";
 
 vi.mock("~/lib/firebase.client", () => ({ db: {} }));
 vi.mock("firebase/firestore", () => ({
